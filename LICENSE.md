@@ -3,7 +3,7 @@ This project is based on the [worldveil/dejavu project](https://github.com/world
 ## Modifications
 This project is a modified version of worldveil/dejavu, with the following changes:
 
-- **Multi-threading** support for improved performance, enabling the processing of multiple requests concurrently.
+- **Multi-processing** support for improved performance, enabling the processing of multiple requests concurrently.
 - **Multi-instance support** to scale the recognition engine for high-traffic environments.
 - Exposed the core **music recognition algorithm** as a **REST API** for integration with other applications and services.
 

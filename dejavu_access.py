@@ -3,7 +3,8 @@ import json
 import sys
 from argparse import RawTextHelpFormatter
 from os.path import isdir
-import threading, queue
+import queue
+import multiprocessing as mp
 from dejavu import Dejavu
 from dejavu.logic.recognizer.blob_recognizer import BlobRecognizer
 
@@ -37,20 +38,20 @@ def recognize(blob, instance, result_queue):
     result_queue.put(result)
 
 def recognizeAll(blob, config_file = "config.json"):
-    threads = []
-    result_queue = queue.Queue()
+    processes = []
+    result_queue = mp.Queue()
     songs = []
     djv = init(config_file)
     
-    # Start a new thread for each instance
+    # Start a new process for each instance
     for instance in djv:
-        thread = threading.Thread(target=recognize, args=(blob, instance, result_queue,), name=f"Thread-{instance}")
-        threads.append(thread)
-        thread.start()
+        process = mp.Process(target=recognize, args=(blob, instance, result_queue,))
+        processes.append(process)
+        process.start()
 
-    # Wait for all threads to complete
-    for thread in threads:
-        thread.join()
+    # Wait for all process to complete
+    for process in processes:
+        process.join()
     
     # collect results from each instance and merge them
     while not result_queue.empty():
