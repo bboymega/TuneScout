@@ -15,14 +15,14 @@ def jsonifyBinary(data):
             data[key] = value.decode('utf-8')  # Convert bytes to string
     return data
 
-resultsArray = [] # Here stores the results
-
 @app.route('/api/recognize', methods=['POST'])
 def recognizeAPI():
     if 'file' not in request.files:
         abort(400, description="No file part in the request.")
     blob = request.files['file'].read()
     results = recognizeAll(blob)
+    
+    resultsArray = [] # Here stores the results
     for result in results:
         resultsArray.append(jsonifyBinary(result))
     
