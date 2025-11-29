@@ -1,4 +1,4 @@
-from dejavu.core_modules.recognize import recognizeAll
+from dejavu.core_modules.recognize_from_api import recognizeAll
 from flask import Flask, jsonify, request, abort
 import json
 import secrets
@@ -23,8 +23,12 @@ def generate_result_token(length=20):
 @app.route('/api/recognize', methods=['POST'])
 def recognizeAPI():
     initAllStorageDb()
+
     if 'file' not in request.files:
-        abort(400, description="No file part in the request.")
+        return jsonify({
+            "error": "No file part in the request"
+        }), 400
+    
     blob = request.files['file'].read()
     results = recognizeAll(blob)
     
@@ -49,6 +53,20 @@ def fetchResultAPI(token):
         return jsonify({
             "error": "The requested data could not be found"
         }), 404
+
+
+@app.route('/api/fingerprint', methods=['POST'])
+def fingerprintAPI():
+    with open(config_file, 'r') as jsonFile:
+        allow_fingerprinting = json.load(jsonFile)["allow_fingerprinting"]
+
+        if isinstance(allow_fingerprinting, str):
+            allow_fingerprinting = allow_fingerprinting.strip().lower() in ['true', '1'] # Normalize data type true, 'true', '1', 1
+
+        if not allow_fingerprinting: # "allow_fingerprinting": false. Write protection enabled
+            return jsonify({
+                "error": "Fingerprinting not allowed"
+            }), 405
 
 
 @app.errorhandler(404)
