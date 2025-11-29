@@ -1,4 +1,4 @@
-from recognize import recognizeAll
+from dejavu.core_modules.recognize import recognizeAll
 from flask import Flask, jsonify, request, abort
 import json
 import secrets
