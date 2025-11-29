@@ -27,11 +27,6 @@ def init(config_file):
 
     return instances
 
-#def fingerprint(directory, extension, config_file = "config.json"):
-#    djv = init(config_file)
-#    print(f"Fingerprinting all .{extension} files in the {directory} directory")
-#    djv.fingerprint_directory(directory, ["." + extension], 4)
-
 def recognize(blob, instance, result_queue):
     result = instance.recognize(BlobRecognizer, blob)
     result_queue.put(result)

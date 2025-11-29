@@ -24,28 +24,8 @@ class Dejavu:
 
         # initialize db
         db_cls = get_database(config.get("database_type", "mysql").lower())
-
         self.db = db_cls(**config.get("database", {}))
         self.db.setup()
-
-        # if we should limit seconds fingerprinted,
-        # None|-1 means use entire track
-        self.limit = self.config.get("fingerprint_limit", None)
-        if self.limit == -1:  # for JSON compatibility
-            self.limit = None
-        self.__load_fingerprinted_audio_hashes()
-
-    def __load_fingerprinted_audio_hashes(self) -> None:
-        """
-        Keeps a dictionary with the hashes of the fingerprinted songs, in that way is possible to check
-        whether or not an audio file was already processed.
-        """
-        # get songs previously indexed
-        self.songs = self.db.get_songs()
-        self.songhashes_set = set()  # to know which ones we've computed before
-        for song in self.songs:
-            song_hash = song[FIELD_FILE_SHA1]
-            self.songhashes_set.add(song_hash)
 
     def get_fingerprinted_songs(self) -> List[Dict[str, any]]:
         """
@@ -63,86 +43,22 @@ class Dejavu:
         """
         self.db.delete_songs_by_id(song_ids)
 
-    def fingerprint_directory(self, path: str, extensions: str, nprocesses: int = None) -> None:
+    def fingerprint_blob(self, blob, song_name: str = None) -> None:
         """
-        Given a directory and a set of extensions it fingerprints all files that match each extension specified.
-
-        :param path: path to the directory.
-        :param extensions: list of file extensions to consider.
-        :param nprocesses: amount of processes to fingerprint the files within the directory.
-        """
-        # Try to use the maximum amount of processes if not given.
-        try:
-            nprocesses = nprocesses or multiprocessing.cpu_count()
-        except NotImplementedError:
-            nprocesses = 1
-        else:
-            nprocesses = 1 if nprocesses <= 0 else nprocesses
-
-        pool = multiprocessing.Pool(nprocesses)
-
-        filenames_to_fingerprint = []
-        for filename, _ in decoder.find_files(path, extensions):
-            # don't refingerprint already fingerprinted files
-            if decoder.unique_hash(filename) in self.songhashes_set:
-                print(f"{filename} already fingerprinted, continuing...")
-                continue
-
-            filenames_to_fingerprint.append(filename)
-
-        # Prepare _fingerprint_worker input
-        worker_input = list(zip(filenames_to_fingerprint, [self.limit] * len(filenames_to_fingerprint)))
-
-        # Send off our tasks
-        iterator = pool.imap_unordered(Dejavu._fingerprint_worker, worker_input)
-
-        # Loop till we have all of them
-        while True:
-            try:
-                song_name, hashes, file_hash = next(iterator)
-            except multiprocessing.TimeoutError:
-                continue
-            except StopIteration:
-                break
-            except Exception:
-                print("Failed fingerprinting")
-                # Print traceback because we can't reraise it here
-                traceback.print_exc(file=sys.stdout)
-            else:
-                sid = self.db.insert_song(song_name, file_hash, len(hashes))
-
-                self.db.insert_hashes(sid, hashes)
-                self.db.set_song_fingerprinted(sid)
-                self.__load_fingerprinted_audio_hashes()
-
-        pool.close()
-        pool.join()
-
-    def fingerprint_file(self, file_path: str, song_name: str = None) -> None:
-        """
-        Given a path to a file the method generates hashes for it and stores them in the database
+        Given an audio binary object the method generates hashes for it and stores them in the database
         for later be queried.
 
-        :param file_path: path to the file.
+        :param blob: audio binary object
         :param song_name: song name associated to the audio file.
         """
-        song_name_from_path = decoder.get_audio_name_from_path(file_path)
-        song_hash = decoder.unique_hash(file_path)
-        song_name = song_name or song_name_from_path
-        # don't refingerprint already fingerprinted files
-        if song_hash in self.songhashes_set:
-            print(f"{song_name} already fingerprinted, continuing...")
-        else:
-            song_name, hashes, file_hash = Dejavu._fingerprint_worker(
-                file_path,
-                self.limit,
-                song_name=song_name
-            )
-            sid = self.db.insert_song(song_name, file_hash)
-
-            self.db.insert_hashes(sid, hashes)
-            self.db.set_song_fingerprinted(sid)
-            self.__load_fingerprinted_audio_hashes()
+        if not song_name:
+            return # Error: empty song name
+        
+        song_hash = decoder.unique_hash(blob)
+        song_name, hashes, blob = Dejavu._fingerprint_worker(blob, song_name=song_name)
+        sid = self.db.insert_song(song_name, file_hash)
+        self.db.insert_hashes(sid, hashes)
+        self.db.set_song_fingerprinted(sid)
 
     def generate_fingerprints(self, samples: List[int], Fs=DEFAULT_FS) -> Tuple[List[Tuple[str, int]], float]:
         f"""
@@ -230,29 +146,27 @@ class Dejavu:
         # Pool.imap sends arguments as tuples so we have to unpack
         # them ourself.
         try:
-            file_name, limit = arguments
+            blob = arguments
         except ValueError:
             pass
 
-        song_name, extension = os.path.splitext(os.path.basename(file_name))
-
-        fingerprints, file_hash = Dejavu.get_file_fingerprints(file_name, limit, print_output=True)
+        fingerprints, file_hash = Dejavu.get_blob_fingerprints(blob, print_output=True)
 
         return song_name, fingerprints, file_hash
 
     @staticmethod
-    def get_file_fingerprints(file_name: str, limit: int, print_output: bool = False):
-        channels, fs, file_hash = decoder.read(file_name, limit)
+    def get_blob_fingerprints(blob, print_output: bool = False):
+        channels, fs, file_hash = decoder.read(blob)
         fingerprints = set()
         channel_amount = len(channels)
         for channeln, channel in enumerate(channels, start=1):
             if print_output:
-                print(f"Fingerprinting channel {channeln}/{channel_amount} for {file_name}")
+                print(f"Fingerprinting channel {channeln}/{channel_amount}")
 
             hashes = fingerprint(channel, Fs=fs)
 
             if print_output:
-                print(f"Finished channel {channeln}/{channel_amount} for {file_name}")
+                print(f"Finished channel {channeln}/{channel_amount}")
 
             fingerprints |= set(hashes)
 

@@ -12,7 +12,7 @@ class BlobRecognizer(BaseRecognizer):
         super().__init__(dejavu)
 
     def recognize_file(self, blob) -> Dict[str, any]:
-        channels, self.Fs, _ = decoder.read(blob, self.dejavu.limit)
+        channels, self.Fs, _ = decoder.read(blob)
 
         t = time()
         matches, fingerprint_time, query_time, align_time = self._recognize(*channels)
