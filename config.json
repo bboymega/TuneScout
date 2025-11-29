@@ -18,5 +18,34 @@
         },
       "database_type": "mysql"
     }
+  ],
+  "results": [
+    {
+        "database": {
+            "host": "127.0.0.1",
+            "user": "dejavu",
+            "password": "dejavu",
+            "database": "result0"
+        },
+      "database_type": "mysql"
+    },
+    {
+        "database": {
+            "host": "127.0.0.1",
+            "user": "dejavu",
+            "password": "dejavu",
+            "database": "result1"
+        },
+      "database_type": "mysql"
+    },
+    {
+        "database": {
+            "host": "127.0.0.1",
+            "user": "dejavu",
+            "password": "dejavu",
+            "database": "result2"
+        },
+      "database_type": "mysql"
+    }
   ]
 }

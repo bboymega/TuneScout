@@ -1,5 +1,8 @@
 # Dejavu
 
+# Configuration file path
+CONFIG_FILE = "config.json"
+
 # DEJAVU JSON RESPONSE
 SONG_ID = "song_id"
 SONG_NAME = 'song_name'
@@ -26,8 +29,7 @@ OFFSET_SECS = 'offset_seconds'
 
 # DATABASE CLASS INSTANCES:
 DATABASES = {
-    'mysql': ("dejavu.database_handler.mysql_database", "MySQLDatabase"),
-    'postgres': ("dejavu.database_handler.postgres_database", "PostgreSQLDatabase")
+    'mysql': ("dejavu.database_handler.mysql_database", "MySQLDatabase")
 }
 
 # TABLE SONGS
@@ -46,6 +48,46 @@ FINGERPRINTS_TABLENAME = "fingerprints"
 # FINGERPRINTS FIELDS
 FIELD_HASH = 'hash'
 FIELD_OFFSET = 'offset'
+
+# TABLE RESULTS
+RESULTS_TABLENAME = "results"
+
+# RESULTS FIELDS
+FIELD_RESULT_ID = 'result_id'
+FIELD_RESULT_TOKEN = 'result_token'
+# Storing the best 3 solutions returned by the algorithm
+FIELD_RESULT1_FILE_SHA1 = "result1_file_sha1"
+FIELD_RESULT1_FINGERPRINTED_CONFIDENCE = "result1_fingerprinted_confidence"
+FIELD_RESULT1_FINGERPRINTED_HASHES_IN_DB = "result1_fingerprinted_hashes_in_db"
+FIELD_RESULT1_HASHES_MATCHED_IN_INPUT = "result1_hashes_matched_in_input"
+FIELD_RESULT1_INPUT_CONFIDENCE = "result1_input_confidence"
+FIELD_RESULT1_INPUT_TOTAL_HASHES = "result1_input_total_hashes"
+FIELD_RESULT1_OFFSET = "result1_offset"
+FIELD_RESULT1_OFFSET_SECONDS = "result1_offset_seconds"
+FIELD_RESULT1_SONG_ID = "result1_song_id"
+FIELD_RESULT1_SONG_NAME = "result1_song_name"
+
+FIELD_RESULT2_FILE_SHA1 = "result2_file_sha1"
+FIELD_RESULT2_FINGERPRINTED_CONFIDENCE = "result2_fingerprinted_confidence"
+FIELD_RESULT2_FINGERPRINTED_HASHES_IN_DB = "result2_fingerprinted_hashes_in_db"
+FIELD_RESULT2_HASHES_MATCHED_IN_INPUT = "result2_hashes_matched_in_input"
+FIELD_RESULT2_INPUT_CONFIDENCE = "result2_input_confidence"
+FIELD_RESULT2_INPUT_TOTAL_HASHES = "result2_input_total_hashes"
+FIELD_RESULT2_OFFSET = "result2_offset"
+FIELD_RESULT2_OFFSET_SECONDS = "result2_offset_seconds"
+FIELD_RESULT2_SONG_ID = "result2_song_id"
+FIELD_RESULT2_SONG_NAME = "result2_song_name"
+
+FIELD_RESULT3_FILE_SHA1 = "result3_file_sha1"
+FIELD_RESULT3_FINGERPRINTED_CONFIDENCE = "result3_fingerprinted_confidence"
+FIELD_RESULT3_FINGERPRINTED_HASHES_IN_DB = "result3_fingerprinted_hashes_in_db"
+FIELD_RESULT3_HASHES_MATCHED_IN_INPUT = "result3_hashes_matched_in_input"
+FIELD_RESULT3_INPUT_CONFIDENCE = "result3_input_confidence"
+FIELD_RESULT3_INPUT_TOTAL_HASHES = "result3_input_total_hashes"
+FIELD_RESULT3_OFFSET = "result3_offset"
+FIELD_RESULT3_OFFSET_SECONDS = "result3_offset_seconds"
+FIELD_RESULT3_SONG_ID = "result3_song_id"
+FIELD_RESULT3_SONG_NAME = "result3_song_name"
 
 # FINGERPRINTS CONFIG:
 # This is used as connectivity parameter for scipy.generate_binary_structure function. This parameter

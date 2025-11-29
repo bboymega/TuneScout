@@ -4,7 +4,6 @@ from typing import Dict, List, Tuple
 
 from dejavu.config.settings import DATABASES
 
-
 class BaseDatabase(object, metaclass=abc.ABCMeta):
     # Name of your Database subclass, this is used in configuration
     # to refer to your class

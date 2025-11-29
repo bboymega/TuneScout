@@ -5,6 +5,7 @@ This project is a modified version of worldveil/dejavu, with the following chang
 
 - **Multi-processing** support for improved performance, enabling the processing of multiple requests concurrently.
 - **Multi-instance support** to scale the recognition engine for high-traffic environments.
+- **Result storage support**: Storing results in databases for future use.
 - Exposed the core **music recognition algorithm** as a **REST API** for integration with other applications and services.
 
 ### MIT License
