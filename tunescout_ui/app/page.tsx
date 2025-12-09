@@ -16,7 +16,7 @@ export default function index() {
     errorAlert.className = 'alert alert-danger';
     errorAlert.id = 'errorAlert'
     errorAlert.role = 'alert';
-    errorAlert.style = "position:absolute; z-index:9999; transition:opacity 0.5s ease; opacity:1;";
+    errorAlert.style = "position:absolute; z-index:9999; transition:opacity 0.5s ease; opacity:1; top: 25%;";
     errorAlert.innerHTML = message;
     setTimeout(() => {
       errorAlert.style.opacity = "0";

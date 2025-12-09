@@ -24,7 +24,7 @@ export default function ResultPage() {
         errorAlert.className = 'alert alert-danger';
         errorAlert.id = 'errorAlert'
         errorAlert.role = 'alert';
-        errorAlert.style = "position:absolute; z-index:9999; transition:opacity 0.5s ease; opacity:1;";
+        errorAlert.style = "position:absolute; z-index:9999; transition:opacity 0.5s ease; opacity:1; top: 25%;";
         errorAlert.innerHTML = message;
         setTimeout(() => {
         errorAlert.style.opacity = "0";
@@ -44,7 +44,7 @@ export default function ResultPage() {
         successAlert.className = 'alert alert-success';
         successAlert.id = 'successAlert'
         successAlert.role = 'alert';
-        successAlert.style = "position:absolute; z-index:9999; transition:opacity 0.5s ease; opacity:1;";
+        successAlert.style = "position:absolute; z-index:9999; transition:opacity 0.5s ease; opacity:1; top: 25%;";
         successAlert.innerHTML = message;
         setTimeout(() => {
         successAlert.style.opacity = "0";
@@ -166,8 +166,7 @@ export default function ResultPage() {
                 cpBtn.type = 'button';
                 cpBtn.className = 'btn btn-dark';
                 cpBtn.style.padding = '4px 8px';
-                cpBtn.innerHTML = 'Copy Name <i class="fa-solid fa-copy"></i>';
-
+                cpBtn.innerHTML = 'Copy Title <i class="fa-solid fa-copy"></i>';
                 cpBtn.addEventListener('click', () => {
                     if (typeof navigator !== 'undefined' && navigator.clipboard) {
                         navigator.clipboard.writeText(jsonData.results[index].song_name.replace(/[_-]/g, ' '))
@@ -199,17 +198,44 @@ export default function ResultPage() {
                 resultBox.appendChild(buttonBox);
                 document.getElementById('resultsList').appendChild(resultBox);
             }
-            const returnBtnDiv = document.createElement('div');
-            returnBtnDiv.className = 'mx-auto mt-4';
+            const returnBtnBox = document.createElement('span');
+            returnBtnBox.className = 'mx-auto mt-4';
+            returnBtnBox.style.display = "inline-flex";
+            returnBtnBox.style.gap = "10px"; 
+
             const returnBtn = document.createElement('button');
-            returnBtn.className = 'btn btn-dark';
+            returnBtn.className = 'btn btn-dark mx-auto mt-4 mb-2';
             returnBtn.innerHTML = 'Return <i class="fa-solid fa-circle-chevron-left"></i>';
             returnBtn.style.padding = '20px 40px';
-            returnBtnDiv.appendChild(returnBtn);
-            document.getElementById('panel').appendChild(returnBtnDiv);
             returnBtn.onclick = () => {
                 router.push('/');
             };
+
+            const copylinkBtn = document.createElement('button');
+            copylinkBtn.className = 'btn btn-light mx-auto mt-4 mb-2';
+            copylinkBtn.innerHTML = 'Copy Result Link <i class="fa-solid fa-copy"></i>';
+            copylinkBtn.style.padding = '20px 40px';
+            copylinkBtn.addEventListener('click', () => {
+                if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href)
+                    .then(() => {
+                        const successAlert = createSuccessAlert('Copied to clipboard');
+                        document.getElementById("mainDiv").appendChild(successAlert);
+                    })
+                    .catch(err => {
+                        const errorAlert = createErrorAlert('Error: Failed to copy');
+                        document.getElementById("mainDiv").appendChild(errorAlert);
+                    });
+                } else {
+                    const errorAlert = createErrorAlert('Error: Clipboard API not available');
+                    document.getElementById("mainDiv").appendChild(errorAlert);
+                }
+            });
+
+            returnBtnBox.appendChild(copylinkBtn);
+            returnBtnBox.appendChild(returnBtn);
+            document.getElementById('panel').appendChild(returnBtnBox);
+            
 
         })
         .catch(error => {
