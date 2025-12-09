@@ -217,7 +217,7 @@ export default function index() {
           <meta name="author" content="" />
           <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
           <link href="css/styles.css" rel="stylesheet" />
-          <header className="masthead">
+          <div className="masthead">
               <div className="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
                   <div className="d-flex justify-content-center" id="mainDiv">
                       <div className="text-center" id="panel">
@@ -229,7 +229,7 @@ export default function index() {
                       </div>
                   </div>
               </div>
-          </header>
+          </div>
           <footer className="footer bg-black small text-center text-white-50"><div className="container px-4 px-lg-5">Copyright &copy; TuneScout 2025</div></footer>
     </div>
   );

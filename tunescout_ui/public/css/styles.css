@@ -710,6 +710,14 @@ body {
   background-size: cover;
 }
 
+/* Mobile styles */
+@media (max-width: 768px) {
+  .masthead {
+    padding: 4rem 1rem; /* smaller top & bottom padding */
+    min-height: auto;    /* remove minimum height restriction */
+  }
+}
+
 .masthead h1 {
   font-family: "Mostwasted", sans-serif;  /* Apply the custom font */
   color: white;
