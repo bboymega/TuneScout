@@ -79,6 +79,7 @@ export default function ResultsModule({ resultsJson }: ResultsModuleProps) {
         <div id="resultsList" className="list-group">
           {resultsJson.results.map((result, index) => {
             const sanitizedSearch = encodeURIComponent(result.song_name.replace(/[_-]/g, ' '));
+            const offsetSec = Math.round(result.offset_seconds);
             return (
               <div
                 key={index}
@@ -89,7 +90,8 @@ export default function ResultsModule({ resultsJson }: ResultsModuleProps) {
                   backgroundColor: '#000000ff',
                 }}
               >
-                <small>#{index + 1}</small>
+                <small>#{index + 1} ⬤ Found at {Math.floor(offsetSec/60)}:{(offsetSec%60).toString().padStart(2,"0")}</small>
+                <small><br/></small>
                 <h5
                   className="mb-1"
                   style={{
