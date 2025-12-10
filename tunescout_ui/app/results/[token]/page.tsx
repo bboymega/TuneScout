@@ -9,7 +9,7 @@ export default function ResultPage() {
     const params = useParams();       // useParams returns { token: string }
     const token = params.token;
     const router = useRouter();
-    const [title, setTitle] = useState('TuneScout - Find the tracks that sticks');
+    const [title, setTitle] = useState('TuneScout - Loading Results...');
     const [errorMsg, setErrorMsg] = useState("");
     const [isError, setisError] = useState(false);
     const [resultsJson, setResultsJson] = useState("");
