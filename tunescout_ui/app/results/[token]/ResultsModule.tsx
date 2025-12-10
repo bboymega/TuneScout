@@ -19,11 +19,19 @@ export default function ResultsModule({ resultsJson }: ResultsModuleProps) {
   const [successMsg, setSuccessMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Build the result title for page
-  const resultTitle = resultsJson.results.map((r) => r.song_name).join(' - ');
+  //Title of page: Results • {time}{title}
+  const formatOffset = (sec: number) => {
+    const minutes = Math.floor(sec / 60);
+    const seconds = sec % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const resultTitle = resultsJson.results
+  .map((r) => `(${formatOffset(Math.round(r.offset_seconds))}) ${r.song_name}`)
+  .join(' • ');
 
   useEffect(() => {
-    document.title = `Results - ${resultTitle}`;
+    document.title = `Results • ${resultTitle}`;
   }, [resultTitle]);
 
   const handleCopyText = (text: string) => {
