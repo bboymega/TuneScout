@@ -94,7 +94,7 @@ def recognize_api():
                     if max_duration > 0:
                         try:
                             blob = ffmpeg.input('pipe:0', t=max_duration) \
-                            .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=2, sample_fmt='s16') \
+                            .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=1, sample_fmt='s16') \
                             .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
                         except Exception as e:
                             sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Failed to process input file\" -" + "\033[0m\n")
@@ -110,7 +110,7 @@ def recognize_api():
         if convert_only:
             try:
                 blob = ffmpeg.input('pipe:0') \
-                .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=2, sample_fmt='s16') \
+                .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=1, sample_fmt='s16') \
                 .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
             except Exception as e:
                 sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Failed to process input file\" -" + "\033[0m\n")

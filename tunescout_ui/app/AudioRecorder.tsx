@@ -41,10 +41,11 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          channelCount: 2, 
+          channelCount: 1, 
           sampleRate: 44100,
-          autoGainControl: true
-          // echoCancellation: false
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
         } 
       });
       activeStreamRef.current = stream;
