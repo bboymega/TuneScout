@@ -236,6 +236,8 @@ class Query(BaseDatabase, metaclass=abc.ABCMeta):
              mapper[hsh] = np.array(mapper[hsh], dtype=np.int64)
 
         values = list(mapper.keys())  # All the unique hashes
+        all_sids_flat = []
+        all_offsets_diff_flat = []
 
         dedup_hashes: Dict[int, int] = {}
         results: List[Tuple[int, int]] = [] # Still a Python list, efficient for many appends
@@ -265,22 +267,39 @@ class Query(BaseDatabase, metaclass=abc.ABCMeta):
             db_offsets = np.array([row[2] for row in result], dtype=np.int64)
 
             unique_hashes = np.unique(db_hashes)
-            
+
+            batch_sids = []
+            batch_diffs = []
+
             for hsh in unique_hashes:
                 match_indices = np.where(db_hashes == hsh)[0]
-                sampled_offsets = mapper[hsh] # np.array of sampled offsets
+                db_offsets_for_hsh = db_offsets[match_indices]
+                db_sids_for_hsh = db_sids[match_indices]
+                sampled_offsets = mapper[hsh]
 
-                for i in match_indices:
-                    sid = db_sids[i]
-                    db_offset = db_offsets[i]
-                    offset_differences = db_offset - sampled_offsets 
-                    
-                    sid_array = np.full_like(offset_differences, sid, dtype=object)
-                    temp_results = np.column_stack((sid_array, offset_differences))
-                    
-                    results.extend(map(tuple, temp_results))
+                # NumPy Broadcasting for higher performance
+                diff_matrix = db_offsets_for_hsh[:, None] - sampled_offsets[None, :]
+                
+                sid_matrix = np.repeat(db_sids_for_hsh, sampled_offsets.shape[0]).reshape(
+                    db_sids_for_hsh.shape[0], sampled_offsets.shape[0])
+                
+                # Batch processing
+                batch_sids.append(sid_matrix.flatten())
+                batch_diffs.append(diff_matrix.flatten())
 
-                    dedup_hashes[sid] = dedup_hashes.get(sid, 0) + 1 # This counts duplicates based on sid and hash match (if a hash appears twice in the db for the same song, it's counted twice in the original). Assuming this is the desired behavior.
+                # Dedup hashes
+                for sid in db_sids_for_hsh:
+                    dedup_hashes[sid] = dedup_hashes.get(sid, 0) + 1
+            
+            # Concatenate batch results
+            if batch_sids:
+                all_sids_flat.extend(np.concatenate(batch_sids))
+                all_offsets_diff_flat.extend(np.concatenate(batch_diffs))
+
+        if all_sids_flat:
+            results = list(zip(all_sids_flat, all_offsets_diff_flat))
+        else:
+            results = []
 
         return results, dedup_hashes
     
