@@ -5,6 +5,7 @@ import FileSelector from './FileSelector';
 import ErrorAlert from './ErrorAlert';
 import WarningAlert from "./WarningAlert";
 import UploadProgress from "./UploadProgress";
+import config from "./config.json"
 
 export default function index() {
   const [title, setTitle] = useState('TuneScout - Find the tracks that sticks');
