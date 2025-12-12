@@ -128,9 +128,9 @@ class Dejavu:
                 FINGERPRINTED_HASHES: song_hashes,
                 HASHES_MATCHED: hashes_matched,
                 # Percentage regarding hashes matched vs hashes from the input.
-                INPUT_CONFIDENCE: round(hashes_matched / queried_hashes, 2),
+                INPUT_CONFIDENCE: hashes_matched / queried_hashes,
                 # Percentage regarding hashes matched vs hashes fingerprinted in the db.
-                FINGERPRINTED_CONFIDENCE: round(hashes_matched / song_hashes, 2),
+                FINGERPRINTED_CONFIDENCE: hashes_matched / song_hashes,
                 OFFSET: max(0, offset),
                 OFFSET_SECS: max(0, nseconds),
                 FIELD_BLOB_SHA1: song.get(FIELD_BLOB_SHA1, None).encode("utf8")
