@@ -7,7 +7,6 @@ from time import time
 from datetime import datetime
 from typing import Dict, List, Tuple
 import dejavu.logic.decoder as decoder
-from dejavu.base_classes.sorting import matches_quick_sort, quicksort_iterative
 from dejavu.base_classes.base_database import get_database
 from dejavu.config.settings import (DEFAULT_FS, DEFAULT_OVERLAP_RATIO,
                                     DEFAULT_WINDOW_SIZE, FIELD_BLOB_SHA1,
@@ -106,13 +105,13 @@ class Dejavu:
         :return: a list of dictionaries (based on topn) with match information.
         """
         # count offset occurrences per song and keep only the maximum ones.
-        sorted_matches = matches_quick_sort(matches, key=lambda m: (m[0], m[1]))
+        sorted_matches = sorted(matches, key=lambda m: (m[0], m[1]))
         counts = [(*key, len(list(group))) for key, group in groupby(sorted_matches, key=lambda m: (m[0], m[1]))]
-        songs_matches = quicksort_iterative(
+        songs_matches = sorted(
             [max(list(group), key=lambda g: g[2]) for key, group in groupby(counts, key=lambda count: count[0])],
             key=lambda count: count[2], reverse=True
         )
-
+        
         songs_result = []
         for song_id, offset, _ in songs_matches[0:topn]:  # consider topn elements in the result
             song = self.db.get_song_by_id(song_id)

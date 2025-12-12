@@ -6,7 +6,6 @@ import secrets
 import string
 from datetime import datetime
 from dejavu import Dejavu
-from dejavu.base_classes.sorting import quick_sort_by_confidence
 from dejavu.base_classes.jsonify_binary_data import jsonify_binary
 from dejavu.config.settings import (CONFIG_FILE, DEFAULT_FS)
 from dejavu.database_handler.result_storage import init_all_storage_db, store_result, search_result_all, if_result_token_exist_all
@@ -123,7 +122,12 @@ def recognize_api():
         for result in results:
             results_array.append(jsonify_binary(result)) # Make sure that the returned data format is JSON compatible
         
-        quick_sort_by_confidence(results_array) #Quick sort output results based on fingerprinted confidence
+        results_array = sorted(
+            results_array,
+            key=lambda x: (x['fingerprinted_confidence'], x['input_confidence']),
+            reverse=True
+        )
+        
         results_array = results_array[:3] # Only return the 3 best solutions.
         results_token = generate_result_token()
 

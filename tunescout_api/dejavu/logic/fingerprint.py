@@ -120,11 +120,13 @@ def get_2D_peaks(arr2D: np.array, plot: bool = False, amp_min: int = DEFAULT_AMP
     
 
 def generate_hashes(peaks, fan_value=DEFAULT_FAN_VALUE):
-    # 1. Preserve old behavior: optional sort
-    if PEAK_SORT:
-        peaks = sorted(peaks, key=lambda x: x[1])
-
+    #1. Numpy quick sort
     peaks = np.asarray(peaks)
+
+    if PEAK_SORT:
+        peaks = peaks[np.argsort(peaks[:, 1], kind='quicksort')]
+
+    
     freqs = peaks[:, 0].astype(int)
     times = peaks[:, 1].astype(int)
 
