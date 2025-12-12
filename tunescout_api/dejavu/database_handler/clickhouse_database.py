@@ -336,7 +336,7 @@ class ClickhouseDatabase(Query):
         ) 
         ENGINE = MergeTree()
         PARTITION BY toYYYYMM(date_created)
-        ORDER BY (`{FIELD_SONG_ID}`, `{FIELD_OFFSET}`, `{FIELD_HASH}`)
+        ORDER BY (`{FIELD_HASH}`, `{FIELD_SONG_ID}`, `{FIELD_OFFSET}`)
         SETTINGS enable_block_number_column = 1, enable_block_offset_column = 1;
     """
     

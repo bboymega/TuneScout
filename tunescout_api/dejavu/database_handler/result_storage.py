@@ -74,7 +74,7 @@ CREATE_RESULTS_TABLE_CLICKHOUSE = f"""
 
     `date_created` DateTime DEFAULT now() NOT NULL
     ) ENGINE = ReplacingMergeTree(date_created)
-    ORDER BY `{FIELD_RESULT_ID}`;
+    ORDER BY `{FIELD_RESULT_TOKEN}`;
 """
 
 CREATE_RESULTS_TABLE_MYSQL = f"""
