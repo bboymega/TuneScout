@@ -101,7 +101,15 @@ return (
               />
             )}
             <div className="text-center" id="panel">
-              <h1 className="mx-auto my-0 mt-2 mb-5 text-uppercase">TuneScout</h1>
+              <h1 className="mx-auto my-0 mt-2 mb-3 text-uppercase">TuneScout</h1>
+              <div
+                id="logo"
+                className="mx-auto"
+                style={{
+                  backgroundImage: "url('/assets/img/logo.png')",
+                  backgroundSize: 'cover',
+                }}
+              />
               <h2 className="mx-auto mt-2 mb-4">Record an audio</h2>
               <AudioRecorder
                 disabled={disabled}

@@ -36,7 +36,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         setDisabled(true);
         const formData = new FormData();
         formData.append('file', selectedFile);
-        const url = `${config.api_base_url.replace(/\/$/, '')}/api/recognize`;
+        const url = `${config.apiBaseUrl.replace(/\/$/, '')}/api/recognize`;
         const response = await uploadtoAPI(url, formData);
         if (response) {
           const resultToken = JSON.parse(response).token;

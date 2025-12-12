@@ -15,9 +15,9 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
     if (isRecording) {
       interval = setInterval(() => {
         setSeconds(prev => {
-          if (prev + 1 >= config.max_duration) {
+          if (prev + 1 >= config.maxDuration) {
             handleSubmitRecord();
-            return config.max_duration;
+            return config.maxDuration;
           }
           return prev + 1;
         });
@@ -103,7 +103,7 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
       console.log(blob);
       const formData = new FormData();
       formData.append('file', blob);
-      const url = `${config.api_base_url.replace(/\/$/, '')}/api/recognize`;
+      const url = `${config.apiBaseUrl.replace(/\/$/, '')}/api/recognize`;
       const response = await uploadtoAPI(url, formData);
       if (response) {
         const resultToken = JSON.parse(response).token;

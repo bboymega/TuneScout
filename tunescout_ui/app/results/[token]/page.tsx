@@ -17,7 +17,7 @@ export default function ResultPage() {
     const [isResultsFetched, setIsResultsFetched] = useState(false);
 
     const handleResultFetch = async () => {
-        const url = `${config.api_base_url.replace(/\/$/, '')}/api/fetch/${token}`;
+        const url = `${config.apiBaseUrl.replace(/\/$/, '')}/api/fetch/${token}`;
         await fetch(url)
             .then(response => 
                 response.json().then(jsonData => {
