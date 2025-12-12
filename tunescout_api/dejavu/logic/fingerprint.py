@@ -117,41 +117,50 @@ def get_2D_peaks(arr2D: np.array, plot: bool = False, amp_min: int = DEFAULT_AMP
         plt.show()
 
     return list(zip(freqs_filter, times_filter))
+    
 
-
-def generate_hashes(peaks: List[Tuple[int, int]], fan_value: int = DEFAULT_FAN_VALUE) -> List[Tuple[str, int]]:
+def generate_hashes(peaks, fan_value=DEFAULT_FAN_VALUE):
     """
-    Hash list structure:
-       sha1_hash[0:FINGERPRINT_REDUCTION]    time_offset
-        [(e05b341a9b77a51fd26, 32), ... ]
-
-    :param peaks: list of peak frequencies and times.
-    :param fan_value: degree to which a fingerprint can be paired with its neighbors.
-    :return: a list of hashes with their corresponding offsets.
+    Use Numpy arrays for better performance.
     """
-    # frequencies are in the first position of the tuples
-    idx_freq = 0
-    # times are in the second position of the tuples
-    idx_time = 1
+    peaks = np.asarray(peaks)
+    freqs = peaks[:, 0]
+    times = peaks[:, 1]
 
-    if PEAK_SORT:
-        peaks.sort(key=itemgetter(1))
+    n = len(peaks)
 
+    # Build the i and j matrices
+    # i: shape (n, fan_value-1)
+    i_idx = np.repeat(np.arange(n).reshape(n, 1), fan_value - 1, axis=1)
+
+    # j: shape (n, fan_value-1)
+    j_offsets = np.arange(1, fan_value)
+    j_idx = i_idx + j_offsets  # broadcasting works
+
+    # mask for valid j within bounds
+    valid = j_idx < n  # shape (n, fan_value-1)
+
+    # Flatten everything where valid=True
+    i_valid = i_idx[valid]     # shape (num_valid_pairs,)
+    j_valid = j_idx[valid]
+
+    # compute deltas (now all are 1D arrays)
+    t1 = times[i_valid]
+    t2 = times[j_valid]
+    t_delta = t2 - t1
+
+    # Filter by delta
+    mask = (t_delta >= MIN_HASH_TIME_DELTA) & (t_delta <= MAX_HASH_TIME_DELTA)
+
+    i_final = i_valid[mask]
+    j_final = j_valid[mask]
+    t1_final = t1[mask]
+    t_delta_final = t_delta[mask]
+
+    # Now hash only the remaining pairs
     hashes = []
-    for i in range(len(peaks)):
-        for j in range(1, fan_value):
-            if (i + j) < len(peaks):
-
-                freq1 = peaks[i][idx_freq]
-                freq2 = peaks[i + j][idx_freq]
-                t1 = peaks[i][idx_time]
-                t2 = peaks[i + j][idx_time]
-                t_delta = t2 - t1
-
-                if MIN_HASH_TIME_DELTA <= t_delta <= MAX_HASH_TIME_DELTA:
-                    h = hashlib.sha1(f"{str(freq1)}|{str(freq2)}|{str(t_delta)}".encode('utf-8'))
-
-                    hashes.append((h.hexdigest()[0:FINGERPRINT_REDUCTION], t1))
+    for i, j, t1_val, dt_val in zip(i_final, j_final, t1_final, t_delta_final):
+        h = hashlib.sha1(f"{freqs[i]}|{freqs[j]}|{dt_val}".encode("utf-8"))
+        hashes.append((h.hexdigest()[:FINGERPRINT_REDUCTION], int(t1_val)))
 
     return hashes
-    
