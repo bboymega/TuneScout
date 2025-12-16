@@ -806,6 +806,103 @@ body {
   }
 }
 
+/* --- Trimmer Container and Base --- */
+.video-trimmer-container {
+    width: 100%;
+    max-width: 800px; /* Max width for better visual control */
+    margin: 20px auto;
+    user-select: none; /* Prevents text selection while dragging */
+    font-family: "OPTICopperplate-Light", sans-serif;
+}
+
+/* --- Timeline Track (The Base) --- */
+.timeline-track {
+    position: relative;
+    height: 40px; /* Height for the timeline area */
+    background-color: #333; /* Dark background for the total duration */
+    border-radius: 4px;
+    cursor: grab; /* Indicates the area is interactive */
+}
+
+/* --- Selected Range (The Highlighted Clip) --- */
+.selected-range {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background-color: #e2dfdf;
+    border-left: 1px solid #3296fa;
+    border-right: 1px solid #3296fa;
+    box-sizing: border-box;
+    z-index: 10;
+    transition: background-color 0.1s;
+}
+
+.selected-range:hover {
+    background-color: #6f7d89;
+}
+
+/* --- Trimmer Handle (The Draggable Elements) --- */
+.trimmer-handle {
+    position: absolute;
+    top: 0;
+    /* Translate ensures the handle's grip point is exactly at the computed 'left' percentage */
+    transform: translateX(-50%); 
+    height: 100%;
+    width: 20px; /* Total clickable area */
+    cursor: col-resize; /* Standard cursor for horizontal resizing */
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Visually distinguish the right handle's position */
+.right-handle {
+    transform: translateX(-50%); 
+}
+
+/* The actual grip line */
+.handle-grip {
+    width: 4px;
+    height: 100%;
+    background-color: #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Time Label Display --- */
+.time-label {
+    position: absolute;
+    top: -25px; /* Position above the track */
+    font-size: 0.75rem;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    /* Undo the handle's transform so the label stays centered */
+    transform: translateX(50%); 
+}
+
+/* Adjust the left handle's label position */
+.left-handle .time-label {
+    transform: translateX(-50%); 
+}
+
+/* Adjust the right handle's label position */
+.right-handle .time-label {
+    transform: translateX(50%); 
+}
+
+/* --- Duration Info --- */
+.duration-info {
+    margin-top: 15px;
+    text-align: center;
+    font-family: "OPTICopperplate-Light", sans-serif;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
 .footer {
   padding: 5rem 0;
 }

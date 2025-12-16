@@ -1,14 +1,33 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import config from './config.json'
+import CloseButton from 'react-bootstrap/CloseButton';
 
 export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setErrorMsg, setIsError, setWarnMsg, setIsWarning, setTitle }) {
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [cancelled, setCancelled] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
   const activeStreamRef = useRef<MediaStream | null>(null);
   const router = useRouter();
+
+  const handleCloseButtonClick = () => {
+    setSeconds(0);
+    setCancelled(true);
+    setTitle(`${config.appName} - ${config.title}`);
+    if (activeStreamRef.current) {
+        // Stop every track (audio and video, if present)
+        activeStreamRef.current.getTracks().forEach(track => {
+            track.stop();
+        });
+    }
+    activeStreamRef.current = null;
+    audioChunksRef.current = [];
+    mediaRecorderRef.current.stop();
+    setDisabled(false);
+    setIsRecording(false);
+  }
 
   useEffect(() => { // Count recording seconds, max 10 seconds.
     let interval;
@@ -97,10 +116,17 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
   };
   
   const handleSubmitRecord = async () => {
+    if(cancelled) {
+      setCancelled(false);
+      return;
+    }
+    if (!activeStreamRef.current && audioChunksRef.current.length === 0) {
+        setCancelled(false);
+        return;
+    }
     const blob = await stopRecording();
     try {
       setDisabled(true);
-      console.log(blob);
       const formData = new FormData();
       formData.append('file', blob);
       const url = `${config.apiBaseUrl.replace(/\/$/, '')}/api/recognize`;
@@ -150,13 +176,27 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
             cursor: "pointer"
           }}
         >
+          <CloseButton 
+            aria-label='Hide'
+            variant= 'white'
+            style = {{
+              zIndex: 99999,
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              fontSize: '1.5rem'
+            }}
+            onClick = {handleCloseButtonClick}
+          />
+
           <div
             style={{
               width: "300px",
               height: "180px",
               backgroundImage: "url('assets/img/recording.gif')",
               backgroundSize: "cover",
-              margin: "0 auto"
+              margin: "0 auto",
+              marginTop: "20px"
             }}
           />
 

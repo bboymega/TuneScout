@@ -90,9 +90,22 @@ def recognize_api():
                         max_duration = int(recognizing_config["max_duration"])
                     else:
                         max_duration = recognizing_config["max_duration"]
+
+                        if request.form.get('start'):
+                            start_time = float(request.form.get('start'))
+                        else:
+                            start_time = 0.0
+
+                        if request.form.get('duration'):
+                            duration = float(request.form.get('duration'))
+                            if duration > max_duration * 1.0:
+                                duration = max_duration
+                        else:
+                            duration = max_duration * 1.0
+
                     if max_duration > 0:
                         try:
-                            blob = ffmpeg.input('pipe:0', t=max_duration) \
+                            blob = ffmpeg.input('pipe:0', ss=start_time, t=duration) \
                             .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=1, sample_fmt='s16') \
                             .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
                         except Exception as e:
@@ -108,7 +121,12 @@ def recognize_api():
                 convert_only = True
         if convert_only:
             try:
-                blob = ffmpeg.input('pipe:0') \
+                if request.form.get('start'):
+                    start_time = float(request.form.get('start'))
+                else:
+                    start_time = 0.0
+
+                blob = ffmpeg.input('pipe:0', ss=start_time) \
                 .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=1, sample_fmt='s16') \
                 .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
             except Exception as e:
