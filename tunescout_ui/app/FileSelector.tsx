@@ -414,7 +414,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
 
       return (
       <>
-        <div className="video-trimmer-container">
+        <div className="video-trimmer-container mt-5">
           <div className="timeline-track" ref={timelineRef}>
             <div 
               className="trimmer-handle left-handle"
