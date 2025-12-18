@@ -885,6 +885,30 @@ body {
     transform: translateX(50%); 
 }
 
+.time-label-zoom-start {
+    position: absolute;
+    font-size: 0.75rem;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 3px;
+    white-space: nowrap;
+    transform: translateX(-450%);
+    /* Undo the handle's transform so the label stays centered */
+    
+}
+
+.time-label-zoom-end {
+    position: absolute;
+    font-size: 0.75rem;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 3px;
+    white-space: nowrap;
+    transform: translateX(350%); 
+    /* Undo the handle's transform so the label stays centered */
+}
+
+
 .time-label-edit-start {
     position: absolute;
     top: -25px; /* Position above the track */
