@@ -18,6 +18,8 @@ export default function index() {
   const [progress, setProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
   const [uploadState, setUploadState] = useState("Uploading...");
+  const contentPath = useState(config?.customizedContent ?? '');
+  const [htmlContent, setHtmlContent] = useState('');
   const currentYear = new Date().getFullYear();
   const mainDivRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +116,30 @@ export default function index() {
   })
 };
 
+
+const ExternalLink = () => {
+  if (!config?.externalLink || config.externalLink.length === 0) return;
+  let linkColor = "#f8f9fa";
+  if (config?.linkColor) linkColor = config.linkColor;
+
+  return (
+    <div className="text-center mx-auto flex flex-col gap-2 mt-2 mb-5" style={{ fontFamily: 'OPTICopperplate-Light, sans-serif' }}>
+      {config.externalLink.map((link, index) => (
+        <a
+          key={index}
+          href={link.url}
+          style={{color: linkColor}}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {link.title}
+        </a>
+      ))}
+    </div>
+  );
+};
+
+
 useEffect(() => {
   if (title) {
     document.title = title;
@@ -163,7 +189,8 @@ return (
                   backgroundSize: 'cover',
                 }}
               />
-              <h2 className="mx-auto mt-2 mb-4">Record an audio</h2>
+              <ExternalLink/>
+              <h2 className="mx-auto mt-2 mb-3">Record an audio</h2>
               <AudioRecorder
                 disabled={disabled}
                 uploadtoAPI={uploadtoAPI}
@@ -175,7 +202,7 @@ return (
                 setTitle={setTitle}
                 mainDivRef={mainDivRef}
               />
-              <h2 className="mx-auto mt-2 mb-4">or upload a file</h2>
+              <h2 className="mx-auto mt-2 mb-3">or upload a file</h2>
               <FileSelector
                 disabled={disabled}
                 uploadtoAPI={uploadtoAPI}

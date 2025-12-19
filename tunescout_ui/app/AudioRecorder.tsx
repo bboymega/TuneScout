@@ -214,7 +214,7 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
 
       <button
         id="recordBtn"
-        className="mx-auto btn btn-primary mt-2 mb-5"
+        className="mx-auto btn btn-primary mt-2 mb-4"
         style={{ backgroundColor: "red" }}
         disabled={disabled}
         onClick={startRecording}

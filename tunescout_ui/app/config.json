@@ -5,5 +5,16 @@
     "title": "Find the tracks that sticks",
     "description": "TuneScout - Find the tracks that sticks",
     "keywords": ["TuneScout", "Music Recognition"],
-    "themeColor": "#190f13"
+    "themeColor": "#190f13",
+    "externalLink": [
+        {
+            "title": "TuneScout Github Repo",
+            "url": "https://github.com/bboymega/TuneScout"
+        },
+        {
+            "title": "Bug Report / Feature Request",
+            "url": "https://github.com/bboymega/TuneScout/issues"
+        }
+    ],
+    "linkColor": "#d2d9df"
 }
