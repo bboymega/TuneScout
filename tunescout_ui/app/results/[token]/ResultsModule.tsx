@@ -7,12 +7,13 @@ import config from '@/app/config.json';
 
 type SongResult = {
   song_name: string;
+  offset_seconds: number; 
 };
 
 type ResultsModuleProps = {
-  resultsJson: { results: SongResult[] };
-  setProgress;
-  setShowProgress;
+  resultsJson: any;
+  setProgress: any;
+  setShowProgress: any;
 };
 
 export default function ResultsModule({ resultsJson, setProgress, setShowProgress }: ResultsModuleProps) {
@@ -30,7 +31,7 @@ export default function ResultsModule({ resultsJson, setProgress, setShowProgres
   };
 
   const resultTitle = resultsJson.results
-  .map((r) => `(${formatOffset(Math.round(r.offset_seconds))}) ${r.song_name}`)
+  .map((r: { offset_seconds: number; song_name: any; }) => `(${formatOffset(Math.round(r.offset_seconds))}) ${r.song_name}`)
   .join(' • ');
 
   useEffect(() => {
@@ -88,8 +89,8 @@ export default function ResultsModule({ resultsJson, setProgress, setShowProgres
         <h1 className="mx-auto my-0 mt-2 mb-5 text-uppercase">{config.appName}</h1>
         <h2 className="mx-auto mt-2 mb-4">Possible Results</h2>
         <div id="resultsList" className="list-group">
-          {resultsJson.results.map((result, index) => {
-            const sanitizedSearch = encodeURIComponent(result.song_name.replace(/[_-]/g, ' '));
+          {resultsJson.results.map((result: any, index: number) => {
+            const sanitizedSearch = encodeURIComponent(result.song_name!.replace(/[_-]/g, ' '));
             const offsetSec = Math.round(result.offset_seconds);
             return (
               <div

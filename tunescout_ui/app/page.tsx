@@ -18,8 +18,6 @@ export default function index() {
   const [progress, setProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
   const [uploadState, setUploadState] = useState("Uploading...");
-  const contentPath = useState(config?.customizedContent ?? '');
-  const [htmlContent, setHtmlContent] = useState('');
   const currentYear = new Date().getFullYear();
   const mainDivRef = useRef<HTMLDivElement>(null);
 
@@ -48,15 +46,15 @@ export default function index() {
             transition: 'width 0.4s ease'
             }}
           aria-valuenow={progress}
-          aria-valuemin="0"
-          aria-valuemax="100"
+          aria-valuemin={0}
+          aria-valuemax={100}
         >
         </div>
       </div>
     )
   }
     
-  function uploadtoAPI(url, formData) {
+  function uploadtoAPI(url: any, formData: any) {
     return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
@@ -212,7 +210,6 @@ return (
                 setWarnMsg={setWarnMsg}
                 setIsWarning={setIsWarning}
                 setTitle={setTitle}
-                mainDivRef={mainDivRef}
                 />
             </div>
           </div>

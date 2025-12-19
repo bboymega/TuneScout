@@ -44,8 +44,8 @@ export default function ResultPage() {
                     transition: 'width 0.4s ease'
                 }}
                 aria-valuenow={progress}
-                aria-valuemin="0"
-                aria-valuemax="100"
+                aria-valuemin={0}
+                aria-valuemax={100}
             >
             </div>
         </div>

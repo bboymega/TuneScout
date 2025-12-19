@@ -25,13 +25,13 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
     }
     activeStreamRef.current = null;
     audioChunksRef.current = [];
-    mediaRecorderRef.current.stop();
+    mediaRecorderRef.current!.stop();
     setDisabled(false);
     setIsRecording(false);
   }
 
   useEffect(() => { // Count recording seconds, max 10 seconds.
-    let interval;
+    let interval: any;
     if (isRecording) {
       interval = setInterval(() => {
         setSeconds(prev => {
@@ -51,7 +51,7 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  function formatTime(seconds) { // Format seconds to mm:ss
+  function formatTime(seconds: number) { // Format seconds to mm:ss
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -107,12 +107,12 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
     }
   };
 
-  const stopResolveRef = useRef<(blob: Blob) => void>();
+  const stopResolveRef = useRef<((blob: Blob) => void) | null>(null);
 
   const stopRecording = (): Promise<Blob | null> => {
     return new Promise((resolve) => {
       stopResolveRef.current = resolve;
-      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current!.stop();
       setTimeout(() => {
         setIsRecording(false);
       }, 0);
@@ -132,6 +132,12 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
     try {
       setDisabled(true);
       const formData = new FormData();
+
+      if (!blob) {
+        setDisabled(false);
+        return;
+      }
+
       formData.append('file', blob);
       const url = `${config.apiBaseUrl.replace(/\/$/, '')}/api/recognize`;
       const response = await uploadtoAPI(url, formData);
@@ -147,7 +153,7 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
           setWarnMsg('Warning: No results were found');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       setTitle(`${config.appName} - ${config.title}`);
       setIsError(true);
       setIsWarning(false);
