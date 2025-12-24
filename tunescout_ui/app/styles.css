@@ -821,16 +821,15 @@ body {
 /* --- Trimmer Container and Base --- */
 .video-trimmer-container {
     width: 100%;
-    min-width: 350px;
     max-width: 1000px; /* Max width for better visual control */
-    margin: 20px auto;
+    margin: 0 auto;
     user-select: none; /* Prevents text selection while dragging */
     font-family: "OPTICopperplate-Light", sans-serif;
 }
 
 /* --- Timeline Track (The Base) --- */
 .timeline-track {
-    position: relative;
+    position: absolute;
     height: 40px; /* Height for the timeline area */
     background-color: #333; /* Dark background for the total duration */
     border-radius: 4px;
@@ -900,24 +899,24 @@ body {
 
 .time-label-zoom-start {
     position: absolute;
+    margin-left: -45%;
     font-size: 0.75rem;
     color: #fff;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 3px;
     white-space: nowrap;
-    transform: translateX(-450%);
     /* Undo the handle's transform so the label stays centered */
     
 }
 
 .time-label-zoom-end {
     position: absolute;
+    margin-left: 35%;
     font-size: 0.75rem;
     color: #fff;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 3px;
     white-space: nowrap;
-    transform: translateX(350%); 
     /* Undo the handle's transform so the label stays centered */
 }
 
@@ -934,7 +933,7 @@ body {
     width: 60px;
     z-index: 150;
     /* Undo the handle's transform so the label stays centered */
-    transform: translateX(-50%); 
+    transform: translateX(-10%); 
 }
 
 .time-label-edit-start-error {
@@ -949,7 +948,7 @@ body {
     width: 60px;
     z-index: 150;
     /* Undo the handle's transform so the label stays centered */
-    transform: translateX(-50%); 
+    transform: translateX(-10%); 
 }
 
 .time-label-edit-end {
@@ -964,7 +963,7 @@ body {
     width: 60px;
     z-index: 150;
     /* Undo the handle's transform so the label stays centered */
-    transform: translateX(50%); 
+    transform: translateX(10%); 
 }
 
 .time-label-edit-end-error {
@@ -979,17 +978,17 @@ body {
     width: 60px;
     z-index: 150;
     /* Undo the handle's transform so the label stays centered */
-    transform: translateX(50%); 
+    transform: translateX(10%); 
 }
 
 /* Adjust the left handle's label position */
 .left-handle .time-label {
-    transform: translateX(-50%); 
+    transform: translateX(-10%); 
 }
 
 /* Adjust the right handle's label position */
 .right-handle .time-label {
-    transform: translateX(50%); 
+    transform: translateX(10%); 
 }
 
 /* --- Duration Info --- */

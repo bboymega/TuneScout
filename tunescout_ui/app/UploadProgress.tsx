@@ -15,6 +15,7 @@ export default function UploadProgress ({ state }: { state: string }) {
         zIndex: 1000,
         textAlign: 'center',
         margin: '0 auto',
+        maxWidth: "clamp(0px, 90vw, 360px)",
         }}
     >
         <div
@@ -28,7 +29,7 @@ export default function UploadProgress ({ state }: { state: string }) {
             margin: '0 auto',
         }}
         />
-        <div id="uploadProgressText" style={{ marginTop: '1rem' }}>
+        <div id="uploadProgressText" style={{ marginTop: '1rem', fontSize: '1.8rem' }}>
         {state}
         </div>
     </div>

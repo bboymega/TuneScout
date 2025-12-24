@@ -795,6 +795,23 @@ body {
     border-radius: 10px;
 }
 
+#logo {
+  /* Set the larger size for desktops */
+  width: 220px;
+  height: 170px;
+  
+  /* Retain other essential styles */
+  background-image: image-set(
+    url('./assets/img/logo.svg') type("image/svg+xml"), 
+    url('./assets/img/logo.png') type("image/png"),
+    url('./assets/img/logo.jpg') type("image/jpeg"),
+    url('./assets/img/logo.jpeg') type("image/jpeg"),
+    url('./assets/img/logo.gif') type("image/gif")
+  );
+  background-size: cover;
+  margin: 0 auto;
+}
+
 .footer {
   padding: 5rem 0;
 }

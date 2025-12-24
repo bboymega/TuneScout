@@ -1,7 +1,20 @@
 const fileInputTmp = document.getElementById('fileInputTmp');
 const fileList = document.getElementById('fileList');
-const container = document.getElementById('fileListContainer');
 let allFiles = new DataTransfer();
+
+fetch('./config.json')
+    .then(response => response.json()) 
+    .then(config => {
+        if (config.appName) {
+            document.getElementById('appName').innerHTML = config.appName + '</br>Uploader';
+            document.title = config.appName + ' Uploader';
+        }
+
+        if(config.themeColor) document.querySelector('meta[name="theme-color"]').setAttribute('content', config.themeColor);
+    })
+    .catch(error => {
+        console.error(error);
+    });
 
 function appendFiles() {
     document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
@@ -16,6 +29,7 @@ function appendFiles() {
         if (newFiles.length === 0) return;
 
         fileListContainer.hidden = false;
+        document.getElementById('appendFiles').disabled = true;
 
         Array.from(newFiles).forEach(file => {
             allFiles.items.add(file);
@@ -30,7 +44,7 @@ function appendFiles() {
 
             li.innerHTML = `
                 <div class="flex-grow-1">
-                    <div class="fw-bold text-truncate" style="max-width: 250px;">${file.name}</div>
+                    <div class="fw-bold text-truncate" style="max-width: min(250px, 50vw);">${file.name}</div>
                     <small class="text-muted"><span class="filesize-text">${sizeText}</span><span class="progress-text" hidden> • Uploading 0%</span></small>
                 </div>
                 <button type="button" class="btn-close ms-2" aria-label="Close"></button>
@@ -50,10 +64,12 @@ function appendFiles() {
                 if (allFiles.files.length === 0) {
                     document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
                     fileListContainer.hidden = true;
+                    document.getElementById('appendFiles').disabled = false;
                 }
                 if (fileList.children.length === 0) {
                     document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
                     fileListContainer.hidden = true;
+                    document.getElementById('appendFiles').disabled = false;
                 }
             });
 
@@ -65,6 +81,7 @@ function appendFiles() {
         if (fileList.children.length === 0) {
             document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
             fileListContainer.hidden = true;
+            document.getElementById('appendFiles').disabled = false;
         }
 
     };
@@ -78,6 +95,7 @@ function clearList() {
     document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
     fileList.innerHTML = '';
     fileListContainer.hidden = true;
+    document.getElementById('appendFiles').disabled = false;
 }
 
 function connectionSettings() {
@@ -96,7 +114,7 @@ function connectionSettings() {
         borderRadius: '5px',
         textAlign: 'center',
         zIndex: '9999',
-        width: '480px'
+        maxWidth: 'min(90vw, 480px)'
     });
 
     fetch("connectionSettings.html")
@@ -365,10 +383,15 @@ function resetFilelistStatus() {
     });
 
     fileInput.files = dt.files;
+    allFiles.items.clear();
+    Array.from(dt.files).forEach(file => {
+        allFiles.items.add(file);
+    });
     if(fileInput.files.length == 0) {
         document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
         fileList.innerHTML = '';
         fileListContainer.hidden = true;
+        document.getElementById('appendFiles').disabled = false;
     }
 }
 
@@ -379,6 +402,7 @@ async function handleUploadFiles() {
         closeButtons.forEach(btn => btn.disabled = true);
         document.getElementById("connectionSettingsBtn").disabled = true;
         document.getElementById("appendFiles").disabled = true;
+        document.getElementById("appendFilesInContainer").disabled = true;
         document.getElementById("uploadFiles").disabled = true;
         document.getElementById("clearList").disabled = true;
 
@@ -402,11 +426,13 @@ async function handleUploadFiles() {
             if(fileInput.files.length == 0) {
                 document.getElementById("connectionSettingsBtn").disabled = false;
                 document.getElementById("appendFiles").disabled = false;
+                document.getElementById("appendFilesInContainer").disabled = false;
                 document.getElementById("uploadFiles").disabled = false;
                 document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
                 document.getElementById("clearList").disabled = false;
                 fileList.innerHTML = '';
                 fileListContainer.hidden = true;
+                document.getElementById('appendFiles').disabled = false;
                 return;
             }
 
@@ -426,6 +452,7 @@ async function handleUploadFiles() {
             closeButtons.forEach(btn => btn.disabled = false);
             document.getElementById("connectionSettingsBtn").disabled = false;
             document.getElementById("appendFiles").disabled = false;
+            document.getElementById("appendFilesInContainer").disabled = false;
             document.getElementById("uploadFiles").disabled = false;
             if(noError) document.getElementById("uploadFiles").innerHTML = `Finish & Close Uploader <i class="fa-solid fa-check"></i>`;
             else document.getElementById("uploadFiles").innerHTML = `Retry Failed Uploads <i class="fa-solid fa-arrow-rotate-right"></i>`;
@@ -437,6 +464,7 @@ async function handleUploadFiles() {
         console.error("Error loading settings: " + error.message);
         document.getElementById("connectionSettingsBtn").disabled = false;
         document.getElementById("appendFiles").disabled = false;
+        document.getElementById("appendFilesInContainer").disabled = false;
         document.getElementById("uploadFiles").disabled = false;
         document.getElementById("clearList").disabled = false;
     }

@@ -11,6 +11,7 @@ from dejavu.config.settings import (CONFIG_FILE, DEFAULT_FS)
 from dejavu.database_handler.result_storage import init_all_storage_db, store_result, search_result_all, if_result_token_exist_all
 from pathlib import Path
 from io import BytesIO
+from werkzeug.middleware.proxy_fix import ProxyFix
 import ffmpeg
 import sys
 import re
@@ -20,19 +21,26 @@ import traceback
 config_file = CONFIG_FILE if CONFIG_FILE not in [None, '', 'config.json'] else 'config.json'
 
 def create_app():
-    app = Flask("tunescout_api")
+    app = Flask(__name__)
     with open(config_file, "r") as f:
         config = json.load(f)
         if(config.get("allowed_origin")):
             allowed_origin = config.get("allowed_origin")
             CORS(app, resources={r"/*": {"origins": allowed_origin}})
+        app.wsgi_app = ProxyFix(
+        app.wsgi_app, 
+        x_for=1, 
+        x_proto=1, 
+        x_host=1, 
+        x_prefix=1
+    )
     return app
 
 app = create_app()
 
 def init():
     try:
-        print(f"TuneScout - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Initializing TuneScout\" -")
+        print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} TuneScout \"INFO: Initializing TuneScout\"")
         init_all_storage_db()
         with open(config_file) as f:
             config = json.load(f)
@@ -44,7 +52,7 @@ def init():
                         instances.append(djv_item)
                 except Exception as e:
                     sys.stderr.write("\033[31m" + str(e) + "\033[0m\n")
-        print(f"TuneScout - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: worker is ready to accept requests\" -")
+        print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} TuneScout \"INFO: worker is ready to accept requests\"")
     except Exception as e:
         sys.stderr.write("\033[31m" + str(e) + "\033[0m\n")
 
@@ -69,10 +77,10 @@ def sanitize_filename(filename):
 @app.route('/api/recognize', methods=['POST'])
 def recognize_api():
     try:
-        print(f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Incoming request from client for recognition process\" -")
+        print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Incoming request from client for recognition process\"")
 
         if 'file' not in request.files:
-            sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: No file part in the request\" -" + "\033[0m\n")
+            sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: No file part in the request\"" + "\033[0m\n")
             return jsonify({
                 "error": "No file part in the request"
             }), 400
@@ -109,7 +117,7 @@ def recognize_api():
                             .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=1, sample_fmt='s16') \
                             .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
                         except Exception as e:
-                            sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Failed to process input file\" -" + "\033[0m\n")
+                            sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to process input file\"" + "\033[0m\n")
                             return jsonify({
                                 "error": "Failed to process input file"
                             }), 500
@@ -137,7 +145,7 @@ def recognize_api():
                     .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
 
             except Exception as e:
-                sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Failed to process input file\" -" + "\033[0m\n")
+                sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to process input file\"" + "\033[0m\n")
                 return jsonify({
                     "error": "Failed to process input file"
                 }), 500
@@ -162,15 +170,15 @@ def recognize_api():
             
         result_status = store_result(results_token, results_array)
         if result_status == 0:
-            print(f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Recognition result generated, token: {results_token}\" -")
+            print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Recognition result generated, token: {results_token}\"")
             return(jsonify({"token":results_token, "results": results_array, "status": "Success"}))
         elif result_status == 1:
-            sys.stderr.write("\033[93m" + f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"WARNING: No results were found\" -" + "\033[0m\n")
+            sys.stderr.write("\033[93m" + f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"WARNING: No results were found\"" + "\033[0m\n")
             return jsonify({
                 "results": []
             }), 200
         else:
-            sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Failed to store result\" -" + "\033[0m\n")
+            sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to store result\"" + "\033[0m\n")
             return jsonify({
                 "error": "Falied to store result"
             }), 500
@@ -187,10 +195,10 @@ def fetch_result_api(token):
     try:
         json_result = search_result_all(token)
         if json_result:
-            print(f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Successfully fetched result, token: {token}\" -")
+            print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Successfully fetched result, token: {token}\"")
             return jsonify(json_result)
         else:
-            sys.stderr.write("\033[33m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"WARNING: The requested data could not be found, token: {token}\" -" + "\033[0m\n")
+            sys.stderr.write("\033[33m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"WARNING: The requested data could not be found, token: {token}\"" + "\033[0m\n")
             return jsonify({
                 "error": "The requested data could not be found"
             }), 404
@@ -208,13 +216,13 @@ def fetch_result_api(token):
 def fingerprint_api():
     try:
         if 'file' not in request.files:
-            print(f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Incoming request from client for fingerprinting process, filename: {None}\" -")
-            sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: No file part in the request\" -" + "\033[0m\n")
+            print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Incoming request from client for fingerprinting process, filename: {None}\"")
+            sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: No file part in the request\"" + "\033[0m\n")
             return jsonify({
                 "error": "No file part in the request"
             }), 400
         uploaded_filename = Path(request.files["file"].filename).name
-        print(f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Incoming request from client for fingerprinting process, filename: {uploaded_filename}\" -")
+        print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Incoming request from client for fingerprinting process, filename: {uploaded_filename}\"")
 
         with open(config_file, 'r') as jsonFile:
             config_json = json.load(jsonFile)
@@ -226,7 +234,7 @@ def fingerprint_api():
             
             # "allow_fingerprinting": false. Write protection enabled
             if not allow_fingerprinting:
-                sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Fingerprinting not allowed\" -" + "\033[0m\n")
+                sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Fingerprinting not allowed\"" + "\033[0m\n")
                 return jsonify({
                     "error": "Fingerprinting not allowed"
                 }), 401
@@ -240,7 +248,7 @@ def fingerprint_api():
                     token_auth = auth_header.split(' ')[1] # Extract the token part
 
                 if token_config and token_auth != token_config: # If token is not configured empty and token provided by the client is valid
-                    sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Fingerprinting token missing or invalid\" -" + "\033[0m\n")
+                    sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Fingerprinting token missing or invalid\"" + "\033[0m\n")
                     return jsonify({
                         "error": "Token missing or invalid"
                     }), 401
@@ -254,7 +262,7 @@ def fingerprint_api():
                 .output('pipe:1', format='wav', ar=DEFAULT_FS, ac=2, sample_fmt='s16') \
                 .run(input=blob, capture_stdout=True, capture_stderr=True)[0]
             except Exception as e:
-                sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Failed to process input file\" -" + "\033[0m\n")
+                sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to process input file\"" + "\033[0m\n")
                 return jsonify({
                     "error": "Failed to process input file"
                 }), 500
@@ -266,24 +274,24 @@ def fingerprint_api():
             # fingerprint song
             status, file_hash = fingerprint(blob, song_name, request.remote_addr)
             if status == 1:
-                sys.stderr.write("\033[33m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"WARNING: Already fingerprinted, filename: {uploaded_filename}\" -" + "\033[0m\n")
+                sys.stderr.write("\033[33m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"WARNING: Already fingerprinted, filename: {uploaded_filename}\"" + "\033[0m\n")
                 return jsonify({
                     "status": "Already fingerprinted",
                     "blob_sha1": file_hash.lower()
                 }), 409
             elif status == -1:
-                sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Empty song name\" -" + "\033[0m\n")
+                sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Empty song name\"" + "\033[0m\n")
                 return jsonify({
                     "error": "Empty song name"
                 }), 405
             elif status == 0:
-                print(f"{request.remote_addr} - - {datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} \"INFO: Fingerprinting successfully completed, filename: {uploaded_filename}\" -")
+                print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Fingerprinting successfully completed, filename: {uploaded_filename}\"")
                 return jsonify({
                     "status": "Success",
                     "blob_sha1": file_hash.lower()
                 }), 200
             else:
-                sys.stderr.write("\033[31m" + f"{request.remote_addr} - - {datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} \"ERROR: Internal server error\" -" + "\033[0m\n")
+                sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Internal server error\"" + "\033[0m\n")
                 abort(500)
     except Exception as e:
         traceback_info = traceback.format_exc()

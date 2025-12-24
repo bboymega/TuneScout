@@ -24,9 +24,11 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
 
+  // Media trimmer interface
   function MediaTrimmer() {
     const [duration, setDuration] = useState(0);
 
+    // Obtain media duration
     const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
       const duration = (e.target as HTMLVideoElement).duration; // Duration in seconds
       setDuration(duration);
@@ -37,6 +39,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
       }
     };
 
+    // Close the window when close button is clicked
     const handleCloseButtonClick = () => {
       setShowMediaTrimmer(false);
       setSelectedFile(null);
@@ -52,6 +55,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
       setClipEnd: React.Dispatch<React.SetStateAction<number>>;
     }
 
+    // Timeline zooming interface
     const TimelineZoom = ({ setShowTimelineZoom, clipStart, setClipStart, clipEnd, setClipEnd }: TimelineZoomProps) => {
       const [zoomLevel, setZoomLevel] = useState(1);
       const MIN_CLIP_DURATION = 1;
@@ -68,6 +72,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
       const startDragTimeRef = useRef({ clipStart: 0, clipEnd: 0 });
       const startMouseXRef = useRef(0);
 
+      // Put the current or most recently used handle at the front
       const getHandleZIndex = (handleType: string) => {
         const startPercent = (clipStart / duration) * 100;
         const ACTIVE_Z = 100;
@@ -91,6 +96,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         return { left: `${startPercent}%`, width: `${endPercent - startPercent}%` };
       };
 
+      // Handle trimming selection
       const handlePointerMove = useCallback((e: PointerEvent) => {
         if (!draggingHandleRef.current || !timelineRef.current) return;
         const trackBounds = timelineRef.current.getBoundingClientRect();
@@ -156,6 +162,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         window.addEventListener('pointerup', handlePointerUp);
       };
 
+      // Handle trackpad motions
       const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
         if (!timelineRef.current) return;
@@ -225,6 +232,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         };
       }, [isDragging]);
 
+      // Automatically keeps the selected range within view
       const adjustFocus = useCallback(() => {
         if (timelineRef.current && viewportRef.current) {
           const timeline = timelineRef.current;
@@ -241,30 +249,30 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
           id="zoomControl"
           style={{
             position: "fixed", top: `calc(50% + ${position.y}px)`, left: `calc(50% + ${position.x}px)`,
-            transform: "translate(-50%, -50%)", backgroundColor: "rgba(0,0,0,0.95)", color: "#fff",
-            padding: "10px 20px", borderRadius: "5px", zIndex: 9999, touchAction: "none", userSelect: "none"
+            transform: "translate(-50%, -50%)", backgroundColor: "rgba(0,0,0,1)", color: "#fff",
+            padding: "10px 20px", borderRadius: "5px", zIndex: 9999, touchAction: "none", userSelect: "none", width: "clamp(0px, 95vw, 400px)"
           }}
         >
           <div
             onPointerDown={handleDragPointerDown}
             style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: '40px',
+              position: 'absolute', top: 0, left: 0, right: 0, height: '30px',
               backgroundColor: 'rgba(255, 255, 255, 0.1)', cursor: 'grab',
               display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '5px 5px 0 0'
             }}
           >
-            <div style={{ width: '30px', height: '2px', backgroundColor: '#6d6d6dff' }}></div>
+            <div style={{ width: '25px', height: '1.5px', backgroundColor: '#6d6d6dff' }}></div>
           </div>
 
           <CloseButton 
             variant="white" 
-            style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 200 }} 
+            style={{ position: 'absolute', top: '4.5px', right: '6px', zIndex: 200, fontSize: '0.9rem' }} 
             onClick={() => setShowTimelineZoom(false)} 
           />
 
-          <div className="video-trimmer-container mt-5" style={{ width: '350px' }}>
+          <div className="video-trimmer-container mt-5">
             <div className="d-flex flex-column align-items-center mb-4">
-              <div className="d-flex align-items-center gap-3" style={{ width: '300px' }}>
+              <div className="d-flex align-items-center gap-3" style={{  width: '85%' }}>
                 <i className="fa-solid fa-magnifying-glass-minus text-white"></i>
                 <input
                   type="range"
@@ -288,7 +296,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
               <span className="time-label-zoom-end">{formatTime(clipEnd)}</span>
             </div>
 
-            <div className="timeline-viewport" ref={viewportRef} style={{ overflowX: 'auto', width: '100%', padding: '20px 0' }}>
+            <div className="timeline-viewport" ref={viewportRef} style={{ overflowX: 'auto', padding: '20px 0', margin: '0 auto' }}>
               <div
                 className="timeline-track"
                 ref={timelineRef}
@@ -355,12 +363,14 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         if (!showMediaTrimmer) setShowTimelineZoom(false);
       }, [showMediaTrimmer]);
 
+      // Confirm trimming and save parameters
       const confirmMediaTrim = () => {
         const clipDuration = clipEnd - clipStart;
         setShowMediaTrimmer(false);
         handleRecognizeFile(clipStart, clipDuration);
       };
 
+      // Put the current or most recently used handle at the front
       const getHandleZIndex = (handleType: string) => {
         const startPercent = (clipStart / duration) * 100;
         const ACTIVE_Z = 100;
@@ -378,6 +388,8 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         return `${min}:${sec < 10 ? '0' : ''}${sec}`;
       };
 
+      // Parse and verify if a given timestamp is valid
+      // Valid formats: ["mm:ss", "ss", "mm:", ":ss"]
       const parseTime = (timeString: string) => {
         const cleanedString = timeString.trim();
         if (cleanedString.includes(':')) {
@@ -399,6 +411,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         }
       };
 
+      // Syncs user-input timestamps to the timeline trim handles.
       const handleTimeInputChange = (e: React.ChangeEvent<HTMLInputElement>, method: number) => {
         if (method === 0) {
           if (!timeCheckRegex.test(e.target.value)) {
@@ -417,6 +430,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         }
       };
 
+      // Validate and clamp timestamps to the media duration before saving
       const handleTimeInputConfirm = (e:React.ChangeEvent<HTMLInputElement>, method:number) => {
         setPassEndTimeRegexCheck(true);
         let time = parseTime(e.target.value);
@@ -470,6 +484,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         setRawClipEndInput(formatTime(clipEnd));
       };
 
+      // Handle trimming selection
       const handlePointerMove = useCallback((e:PointerEvent) => {
         if (!draggingHandleRef.current || !timelineRef.current) return;
         const trackBounds = timelineRef.current.getBoundingClientRect();
@@ -613,7 +628,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
           setClipEnd = {setClipEnd}
         />
       )}
-      <div className="video-trimmer-container mt-5" style={{ userSelect: 'none' }}>
+      <div className="video-trimmer-container mt-5">
         <button
           id="zoomBtn"
           className="mx-auto btn btn-primary mb-3"
@@ -622,7 +637,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         >
           Zoom <i className="fa-solid fa-magnifying-glass"></i>
         </button>
-        <div className="timeline-track" ref={timelineRef} style={{ touchAction: 'none', position: 'relative' }}>
+        <div className="timeline-track" ref={timelineRef} style={{ touchAction: 'none', position: 'relative', margin: '0 auto', height: '40px' }}>
           <div 
             className="trimmer-handle left-handle"
             style={{ left: `${(clipStart / duration) * 100}%`, zIndex: getHandleZIndex('start') }}
@@ -702,6 +717,8 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
           position: "fixed",
           top: "50%",
           left: "50%",
+          justifyContent: "center",
+          alignItems: "center",
           transform: "translate(-50%, -50%)",
           backgroundColor: "rgba(0,0,0,0.9)",
           color: "#fff",
@@ -709,7 +726,9 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
           borderRadius: "5px",
           fontSize: "1rem",
           textAlign: "center",
-          zIndex: 9999
+          zIndex: 9999,
+          margin: "0 auto",
+          minWidth: "clamp(0px, 90vw, 360px)"
         }}
       >
         <CloseButton 

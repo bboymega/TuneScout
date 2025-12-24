@@ -136,7 +136,7 @@ export default function index() {
 
 const ExternalLink = () => {
   if (!config?.externalLink || config.externalLink.length === 0) return;
-  let linkColor = "#f8f9fa";
+  let linkColor = "#d2d9df";
   if (config?.linkColor) linkColor = config.linkColor;
 
   return (
@@ -201,10 +201,6 @@ return (
               <div
                 id="logo"
                 className="mx-auto"
-                style={{
-                  backgroundImage: "url('/assets/img/logo.png')",
-                  backgroundSize: 'cover',
-                }}
               />
               <ExternalLink/>
               <h2 className="mx-auto mt-2 mb-3">Record an audio</h2>

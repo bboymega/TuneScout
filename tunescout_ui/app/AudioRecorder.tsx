@@ -200,7 +200,9 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
             fontSize: "2rem",
             textAlign: "center",
             zIndex: 9999,
-            cursor: "pointer"
+            cursor: "pointer",
+            maxWidth: "clamp(0px, 90vw, 360px)",
+            maxHeight: '90vh'
           }}
         >
           <CloseButton 
@@ -218,7 +220,7 @@ export default function AudioRecorder({ disabled, uploadtoAPI, setDisabled, setE
 
           <div
             style={{
-              width: "300px",
+              width: "100%",
               height: "180px",
               backgroundImage: "url('assets/img/recording.gif')",
               backgroundSize: "cover",
