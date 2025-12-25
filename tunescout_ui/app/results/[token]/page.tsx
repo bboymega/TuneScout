@@ -62,8 +62,7 @@ export default function ResultPage() {
                 response.json().then(jsonData => {
                     setProgress(85);
                     const errorMessage =
-                        jsonData.error ??
-                        jsonData.status ??
+                        jsonData.message ??
                         null;
                     if (!response.ok) {
                         setProgress(100);

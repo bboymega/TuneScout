@@ -82,7 +82,8 @@ def recognize_api():
         if 'file' not in request.files:
             sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: No file part in the request\"" + "\033[0m\n")
             return jsonify({
-                "error": "No file part in the request"
+                "status": "error",
+                "message": "No file part in the request"
             }), 400
 
         blob = request.files['file'].read()
@@ -119,7 +120,8 @@ def recognize_api():
                         except Exception as e:
                             sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to process input file\"" + "\033[0m\n")
                             return jsonify({
-                                "error": "Failed to process input file"
+                                "status": "error",
+                                "message": "Failed to process input file"
                             }), 500
                     else:
                         convert_only = True
@@ -147,7 +149,8 @@ def recognize_api():
             except Exception as e:
                 sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to process input file\"" + "\033[0m\n")
                 return jsonify({
-                    "error": "Failed to process input file"
+                    "status": "error",
+                    "message": "Failed to process input file"
                 }), 500
         
         results = recognize_all(blob)
@@ -171,16 +174,18 @@ def recognize_api():
         result_status = store_result(results_token, results_array)
         if result_status == 0:
             print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Recognition result generated, token: {results_token}\"")
-            return(jsonify({"token":results_token, "results": results_array, "status": "Success"}))
+            return(jsonify({"token":results_token, "results": results_array, "status": "success"}))
         elif result_status == 1:
             sys.stderr.write("\033[93m" + f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"WARNING: No results were found\"" + "\033[0m\n")
             return jsonify({
+                "status": "success",
                 "results": []
             }), 200
         else:
             sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to store result\"" + "\033[0m\n")
             return jsonify({
-                "error": "Falied to store result"
+                "status": "error",
+                "message": "Falied to store result"
             }), 500
     except Exception as e:
         traceback_info = traceback.format_exc()
@@ -200,7 +205,8 @@ def fetch_result_api(token):
         else:
             sys.stderr.write("\033[33m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"WARNING: The requested data could not be found, token: {token}\"" + "\033[0m\n")
             return jsonify({
-                "error": "The requested data could not be found"
+                "status": "error",
+                "message": "The requested data could not be found"
             }), 404
     except Exception as e:
         traceback_info = traceback.format_exc()
@@ -219,7 +225,8 @@ def fingerprint_api():
             print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Incoming request from client for fingerprinting process, filename: {None}\"")
             sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: No file part in the request\"" + "\033[0m\n")
             return jsonify({
-                "error": "No file part in the request"
+                "status": "error",
+                "message": "No file part in the request"
             }), 400
         uploaded_filename = Path(request.files["file"].filename).name
         print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Incoming request from client for fingerprinting process, filename: {uploaded_filename}\"")
@@ -236,7 +243,8 @@ def fingerprint_api():
             if not allow_fingerprinting:
                 sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Fingerprinting not allowed\"" + "\033[0m\n")
                 return jsonify({
-                    "error": "Fingerprinting not allowed"
+                    "status": "error",
+                    "message": "Fingerprinting not allowed"
                 }), 401
             
             # Validate token if exist
@@ -250,7 +258,8 @@ def fingerprint_api():
                 if token_config and token_auth != token_config: # If token is not configured empty and token provided by the client is valid
                     sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Fingerprinting token missing or invalid\"" + "\033[0m\n")
                     return jsonify({
-                        "error": "Token missing or invalid"
+                        "status": "error",
+                        "message": "Token missing or invalid"
                     }), 401
 
 
@@ -264,7 +273,8 @@ def fingerprint_api():
             except Exception as e:
                 sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Failed to process input file\"" + "\033[0m\n")
                 return jsonify({
-                    "error": "Failed to process input file"
+                    "status": "error",
+                    "message": "Failed to process input file"
                 }), 500
 
             # Obtain filename
@@ -276,18 +286,20 @@ def fingerprint_api():
             if status == 1:
                 sys.stderr.write("\033[33m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"WARNING: Already fingerprinted, filename: {uploaded_filename}\"" + "\033[0m\n")
                 return jsonify({
-                    "status": "Already fingerprinted",
+                    "status": "error",
+                    "message": "Already fingerprinted",
                     "blob_sha1": file_hash.lower()
                 }), 409
             elif status == -1:
                 sys.stderr.write("\033[31m" + f"{datetime.now().strftime('[%d/%b/%Y %H:%M:%S]')} {request.remote_addr} \"ERROR: Empty song name\"" + "\033[0m\n")
                 return jsonify({
-                    "error": "Empty song name"
+                    "status": "error",
+                    "message": "Empty song name"
                 }), 405
             elif status == 0:
                 print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Fingerprinting successfully completed, filename: {uploaded_filename}\"")
                 return jsonify({
-                    "status": "Success",
+                    "status": "success",
                     "blob_sha1": file_hash.lower()
                 }), 200
             else:
@@ -306,37 +318,43 @@ def fingerprint_api():
 @app.errorhandler(400)
 def bad_request(error):
     return jsonify({
-        "error": "Bad request"
+        "status": "error",
+        "message": "Bad request"
     }), 400
 
 @app.errorhandler(401)
 def unauthorized(error):
     return jsonify({
-        "error": "Unauthorized"
+        "status": "error",
+        "message": "Unauthorized"
     }), 401
 
 @app.errorhandler(404)
 def endpoint_not_found(error):
     return jsonify({
-        "error": "Endpoint not found"
+        "status": "error",
+        "message": "Endpoint not found"
     }), 404
 
 @app.errorhandler(405)
 def method_not_allowed(error):
     return jsonify({
-        "error": "Method not allowed"
+        "status": "error",
+        "message": "Method not allowed"
     }), 405
 
 @app.errorhandler(409)
 def conflict_data(error):
     return jsonify({
-        "error": "Conflict"
+        "status": "error",
+        "message": "Conflict"
     }), 409
 
 @app.errorhandler(500)
 def internal_server_error(error):
     return jsonify({
-        "error": "Internal server error"
+        "status": "error",
+        "message": "Internal server error"
     }), 500
 
 

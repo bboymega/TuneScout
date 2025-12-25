@@ -517,7 +517,7 @@ def search_result_all(results_token):
                 binary_json = {
                     "results": [],
                     "token": result[0],
-                    "status": "Success"
+                    "status": "success"
                 }
                 if result[1]:
                     binary_json["results"].append({

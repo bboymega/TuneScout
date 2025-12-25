@@ -6,8 +6,10 @@ fetch('./config.json')
     .then(response => response.json()) 
     .then(config => {
         if (config.appName) {
+            const currentYear = new Date().getFullYear();
             document.getElementById('appName').innerHTML = config.appName + '</br>Uploader';
             document.title = config.appName + ' Uploader';
+            document.getElementById('footer').innerHTML = `Copyright &copy; ${config.appName} ${currentYear}`;
         }
 
         if(config.themeColor) document.querySelector('meta[name="theme-color"]').setAttribute('content', config.themeColor);
@@ -17,7 +19,7 @@ fetch('./config.json')
     });
 
 function appendFiles() {
-    document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+    document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
     resetFilelistStatus();
     const fileInputTmp = document.createElement('input');
     fileInputTmp.type = 'file';
@@ -62,12 +64,12 @@ function appendFiles() {
                 document.getElementById('fileInput').files = allFiles.files;
 
                 if (allFiles.files.length === 0) {
-                    document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+                    document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
                     fileListContainer.hidden = true;
                     document.getElementById('appendFiles').disabled = false;
                 }
                 if (fileList.children.length === 0) {
-                    document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+                    document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
                     fileListContainer.hidden = true;
                     document.getElementById('appendFiles').disabled = false;
                 }
@@ -79,7 +81,7 @@ function appendFiles() {
         document.getElementById('fileInput').files = allFiles.files;
 
         if (fileList.children.length === 0) {
-            document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+            document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
             fileListContainer.hidden = true;
             document.getElementById('appendFiles').disabled = false;
         }
@@ -92,7 +94,7 @@ function clearList() {
     const dt = new DataTransfer();
     allFiles = dt;
     document.getElementById('fileInput').files = allFiles.files;
-    document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+    document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
     fileList.innerHTML = '';
     fileListContainer.hidden = true;
     document.getElementById('appendFiles').disabled = false;
@@ -286,7 +288,7 @@ function uploadFile(url, file, fileListItem, token) {
                     percentLabel.hidden = false;
                     try {
                         const response = JSON.parse(xhr.responseText);
-                        errorMessage = response.error || response.status || `${xhr.status}`;
+                        errorMessage = response.message || `${xhr.status}`;
                     } catch (e) {
                         errorMessage = xhr.statusText || `${xhr.status}`;
                     }
@@ -305,7 +307,7 @@ function uploadFile(url, file, fileListItem, token) {
                     percentLabel.hidden = false;
                     try {
                         const response = JSON.parse(xhr.responseText);
-                        errorMessage = response.error || response.status || `${xhr.status}`;
+                        errorMessage = response.message || `${xhr.status}`;
                     } catch (e) {
                         errorMessage = xhr.statusText || `${xhr.status}`;
                     }
@@ -388,7 +390,7 @@ function resetFilelistStatus() {
         allFiles.items.add(file);
     });
     if(fileInput.files.length == 0) {
-        document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+        document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
         fileList.innerHTML = '';
         fileListContainer.hidden = true;
         document.getElementById('appendFiles').disabled = false;
@@ -397,7 +399,7 @@ function resetFilelistStatus() {
 
 async function handleUploadFiles() {
     try {
-        document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+        document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
         const closeButtons = document.querySelectorAll('#fileList .btn-close');
         closeButtons.forEach(btn => btn.disabled = true);
         document.getElementById("connectionSettingsBtn").disabled = true;
@@ -428,7 +430,7 @@ async function handleUploadFiles() {
                 document.getElementById("appendFiles").disabled = false;
                 document.getElementById("appendFilesInContainer").disabled = false;
                 document.getElementById("uploadFiles").disabled = false;
-                document.getElementById("uploadFiles").innerHTML = `Upload & Fingerprint <i class="fa-solid fa-upload">`;
+                document.getElementById("uploadFiles").innerHTML = `Fingerprint <i class="fa-solid fa-upload">`;
                 document.getElementById("clearList").disabled = false;
                 fileList.innerHTML = '';
                 fileListContainer.hidden = true;
@@ -454,8 +456,8 @@ async function handleUploadFiles() {
             document.getElementById("appendFiles").disabled = false;
             document.getElementById("appendFilesInContainer").disabled = false;
             document.getElementById("uploadFiles").disabled = false;
-            if(noError) document.getElementById("uploadFiles").innerHTML = `Finish & Close Uploader <i class="fa-solid fa-check"></i>`;
-            else document.getElementById("uploadFiles").innerHTML = `Retry Failed Uploads <i class="fa-solid fa-arrow-rotate-right"></i>`;
+            if(noError) document.getElementById("uploadFiles").innerHTML = `Done <i class="fa-solid fa-check"></i>`;
+            else document.getElementById("uploadFiles").innerHTML = `Retry <i class="fa-solid fa-arrow-rotate-right"></i>`;
             document.getElementById("clearList").disabled = false;
         }
     } catch (error) {

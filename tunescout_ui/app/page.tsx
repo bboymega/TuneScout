@@ -92,16 +92,15 @@ export default function index() {
       } else {
         const jsonData = JSON.parse(xhr.responseText);
         const errorMessage =
-          jsonData.error ??   // highest priority
-          jsonData.status ??  // fallback
-          null;           // nothing found
-        reject(new Error(`${xhr.status} ${errorMessage}`));
+          jsonData.message ??
+          null;
+        reject(new Error(`Error: ${xhr.status} ${errorMessage}`));
         setUploadState('Uploading...');
         setIsUploading(false);
         setDisabled(false);
         setShowProgress(false);
         setProgress(0);
-        setErrorMsg(`${xhr.status} ${errorMessage}`);
+        setErrorMsg(`Error: ${xhr.status} ${errorMessage}`);
         setIsError(true);
         return null;
       }
@@ -114,13 +113,11 @@ export default function index() {
       if (event.lengthComputable) {
         const percent = (event.loaded / event.total) * 100;
         setTitle(`${config.appName} - Uploading... ${Math.round(percent)}%`);
-        const text = document.createElement('span');
-        text.id = 'uploadProgressText';
         setUploadState(`Uploading... ${Math.round(percent)}%`);
       };
     };
     xhr.onerror = function () {
-      reject(new Error('Backend not reachable'));
+      reject(new Error('Error: Backend not reachable'));
       setIsUploading(false);
       setDisabled(false);
       setShowProgress(false);
