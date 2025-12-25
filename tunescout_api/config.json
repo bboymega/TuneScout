@@ -14,6 +14,8 @@
   },
   "redis": {
     "host": "127.0.0.1",
+    "user": "dejavu",
+    "password": "dejavu",
     "port": 6379
   },
   "allowed_origin": ["http://127.0.0.1:3000", "http://172.16.241.129:3000", "http://172.16.241.129"],

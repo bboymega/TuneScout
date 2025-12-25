@@ -28,12 +28,16 @@ class Query(BaseDatabase, metaclass=abc.ABCMeta):
 
             redis_conf = config_data.get("redis", {})
             host = redis_conf.get("host", "127.0.0.1")
+            user = redis_conf.get("user")
+            password = redis_conf.get("password")
             port = redis_conf.get("port", 6379)
             db_index = self.redis_db_index
 
             self.redis_pool = redis.ConnectionPool(
                 host=host,
                 port=port,
+                username=user,
+                password=password,
                 db=db_index,
                 socket_timeout=2.0,
                 socket_connect_timeout=2.0,
