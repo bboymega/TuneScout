@@ -1,11 +1,20 @@
 {
   "fingerprinting": {
     "allow": true,
-    "token": "12345"
+    "token": "12345",
+    "rate_limit": "99999 per minute"
+  },
+  "fetching_results": {
+    "rate_limit": "99999 per minute"
   },
   "recognizing": {
     "max_duration": 10,
-    "max_file_size_mb": 150
+    "max_file_size_mb": 150,
+    "rate_limit": "99999 per minute"
+  },
+  "redis": {
+    "host": "127.0.0.1",
+    "port": 6379
   },
   "allowed_origin": ["http://127.0.0.1:3000", "http://172.16.241.129:3000", "http://172.16.241.129"],
   "instances": [
@@ -15,9 +24,10 @@
         "user": "dejavu",
         "password": "dejavu",
         "database": "dejavu0",
-        "port": 9000
+        "port": 3306
       },
-      "database_type": "clickhouse"
+      "redis_db_index": 0,
+      "database_type": "mysql"
     },
     {
       "database": {
@@ -25,9 +35,10 @@
         "user": "dejavu",
         "password": "dejavu",
         "database": "dejavu1",
-        "port": 9000
+        "port": 3306
       },
-      "database_type": "clickhouse"
+      "redis_db_index": 1,
+      "database_type": "mysql"
     },
     {
       "database": {
@@ -35,9 +46,10 @@
         "user": "dejavu",
         "password": "dejavu",
         "database": "dejavu2",
-        "port": 9000
+        "port": 3306
       },
-      "database_type": "clickhouse"
+      "redis_db_index": 2,
+      "database_type": "mysql"
     }
   ],
   "results": [
@@ -47,9 +59,9 @@
         "user": "dejavu",
         "password": "dejavu",
         "database": "result0",
-        "port": 9000
+        "port": 3306
       },
-      "database_type": "clickhouse"
+      "database_type": "mysql"
     },
     {
       "database": {
@@ -57,9 +69,9 @@
         "user": "dejavu",
         "password": "dejavu",
         "database": "result1",
-        "port": 9000
+        "port": 3306
       },
-      "database_type": "clickhouse"
+      "database_type": "mysql"
     },
     {
       "database": {
@@ -67,9 +79,9 @@
         "user": "dejavu",
         "password": "dejavu",
         "database": "result2",
-        "port": 9000
+        "port": 3306
       },
-      "database_type": "clickhouse"
+      "database_type": "mysql"
     }
   ]
 }

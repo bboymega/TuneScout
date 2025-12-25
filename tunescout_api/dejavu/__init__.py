@@ -23,7 +23,8 @@ class Dejavu:
 
         # initialize db
         db_cls = get_database(config.get("database_type", "mysql").lower())
-        self.db = db_cls(**config.get("database", {}))
+        redis_db_index = config.get("redis_db_index")
+        self.db = db_cls(redis_db_index=redis_db_index, **config.get("database", {}))
         self.db.setup()
 
     def get_fingerprinted_songs(self) -> List[Dict[str, any]]:

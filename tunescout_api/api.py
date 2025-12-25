@@ -16,6 +16,8 @@ import ffmpeg
 import sys
 import re
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import traceback
 
 config_file = CONFIG_FILE if CONFIG_FILE not in [None, '', 'config.json'] else 'config.json'
@@ -37,6 +39,25 @@ def create_app():
     return app
 
 app = create_app()
+
+with open('config.json') as f:
+    config_data = json.load(f)
+
+raw_recognize_limit = config_data.get("recognizing", {}).get("rate_limit")
+active_recognize_limit = raw_recognize_limit if raw_recognize_limit else "10 per second"
+
+raw_fetch_limit = config_data.get("fetching_results", {}).get("rate_limit")
+active_fetch_limit = raw_fetch_limit if raw_fetch_limit else "10 per second"
+
+raw_fingerprint_limit = config_data.get("fingerprinting", {}).get("rate_limit")
+active_fingerprint_limit = raw_fingerprint_limit if raw_fingerprint_limit else "10 per second"
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+#    storage_uri=f"sqlite:///{db_path}",
+#    storage_options={"engine_kwargs": {"connect_args": {"check_same_thread": False}}}
+)
 
 def init():
     try:
@@ -75,6 +96,7 @@ def sanitize_filename(filename):
     return filename
 
 @app.route('/api/recognize', methods=['POST'])
+@limiter.limit(active_recognize_limit)
 def recognize_api():
     try:
         print(f"{datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")} {request.remote_addr} \"INFO: Incoming request from client for recognition process\"")
@@ -222,6 +244,7 @@ def recognize_api():
         abort(500)
 
 @app.route('/api/fetch/<token>', methods=['GET'])
+@limiter.limit(active_fetch_limit)
 def fetch_result_api(token):
     try:
         json_result = search_result_all(token)
@@ -245,6 +268,7 @@ def fetch_result_api(token):
 
 
 @app.route('/api/fingerprint', methods=['POST'])
+@limiter.limit(active_fingerprint_limit)
 def fingerprint_api():
     try:
         if 'file' not in request.files:
@@ -382,6 +406,13 @@ def request_entity_too_large(error):
         "status": "error",
         "message": "Request entity too large"
     }), 413
+
+@app.errorhandler(429)
+def too_many_requests(error):
+    return jsonify({
+        "status": "error",
+        "message": "Too many requests"
+    }), 429
 
 @app.errorhandler(500)
 def internal_server_error(error):

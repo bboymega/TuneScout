@@ -4,19 +4,46 @@ import sys
 import mysql.connector
 import numpy as np
 import traceback
+import redis
+import json
+import pickle
+import uuid
 from typing import Dict, List, Tuple
 from dejavu.base_classes.base_database import BaseDatabase
 from mysql.connector.errors import DatabaseError
 from dejavu.config.settings import (FIELD_BLOB_SHA1, FIELD_FINGERPRINTED,
                                     FIELD_HASH, FIELD_OFFSET, FIELD_SONG_ID,
                                     FIELD_SONGNAME, FIELD_TOTAL_HASHES,
-                                    FINGERPRINTS_TABLENAME, SONGS_TABLENAME)
-                                    
+                                    FINGERPRINTS_TABLENAME, SONGS_TABLENAME, CONFIG_FILE)
+
+config_file = CONFIG_FILE if CONFIG_FILE not in [None, '', 'config.json'] else 'config.json'
 
 class Query(BaseDatabase, metaclass=abc.ABCMeta):
-
-    def __init__(self):
+    def __init__(self, redis_db_index):
         super().__init__()
+        self.redis_db_index = redis_db_index
+        try:
+            with open(config_file, 'r') as f:
+                config_data = json.load(f)
+
+            redis_conf = config_data.get("redis", {})
+            host = redis_conf.get("host", "127.0.0.1")
+            port = redis_conf.get("port", 6379)
+            db_index = self.redis_db_index
+
+            self.redis_pool = redis.ConnectionPool(
+                host=host,
+                port=port,
+                db=db_index,
+                socket_timeout=2.0,
+                socket_connect_timeout=2.0,
+                retry_on_timeout=True
+            )
+            self.redis_client = redis.Redis(connection_pool=self.redis_pool)
+            self.redis_client.ping()
+        except (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError) as e:
+            sys.stderr.write(f"\033[33mRedis Connection Warning: {e}. Falling back to ClickHouse query-only mode.\033[0m\n")
+            self.redis_client = None
 
     def before_fork(self) -> None:
         """
@@ -189,87 +216,108 @@ class Query(BaseDatabase, metaclass=abc.ABCMeta):
             for index in range(0, len(hashes), batch_size):
                 cur.executemany(self.INSERT_FINGERPRINT, values[index: index + batch_size])
 
-    def return_matches(self, hashes: List[Tuple[str, int]],
-                       batch_size: int = 1000) -> Tuple[List[Tuple[int, int]], Dict[int, int]]:
+    def return_matches(self, hashes: List[Tuple[str, int]], batch_size: int = 1000) -> Tuple[List[Tuple[int, int]], Dict[str, int]]:
         """
-        Searches the MySQL database for pairs of (hash, offset) values, refactored with NumPy.
+        Searches Redis (cache) then MySQL (fallback). 
+        Uses NumPy for vectorized result expansion and offset broadcasting.
         """
-        # Prepare Data for Query 
+        # 1. Prepare Data for Query (Mapping input hashes to their offsets)
         mapper = {}
         for hsh, offset in hashes:
             hsh_upper = hsh.upper() 
-            
             if hsh_upper not in mapper:
                 mapper[hsh_upper] = []
             mapper[hsh_upper].append(offset)
         
-        # Convert lists of offsets into NumPy arrays
         for hsh in mapper:
-             mapper[hsh] = np.array(mapper[hsh], dtype=np.int64)
+            mapper[hsh] = np.array(mapper[hsh], dtype=np.int64)
 
-        values = list(mapper.keys())  # All the unique hashes (uppercase strings)
+        values = list(mapper.keys())
         all_sids_flat = []
         all_offsets_diff_flat = []
+        dedup_hashes: Dict[str, int] = {}
 
-        # Dictionary to store the number of matched hashes per song (UUID/sid is the key)
-        dedup_hashes: Dict[int, int] = {}
-        results: List[Tuple[int, int]] = [] 
+        for index in range(0, len(values), batch_size):
+            current_batch = values[index: index + batch_size]
+            
+            # 2. Check Redis Cache
+            pipe = self.redis_client.pipeline()
+            for hsh in current_batch:
+                pipe.get(hsh.upper())
+            redis_responses = pipe.execute()
+            
+            hit_blocks = []
+            cache_misses = []
 
-        # Batch Query and Vectorized Processing
-        with self.cursor() as cur:
-            for index in range(0, len(values), batch_size):
-                current_batch = values[index: index + batch_size]
-                
-                # MySQL query
-                query = self.SELECT_MULTIPLE % ', '.join([self.IN_MATCH] * len(current_batch))
+            for hsh, raw_data in zip(current_batch, redis_responses):
+                if raw_data:
+                    m_list = pickle.loads(raw_data)
+                    if m_list:
+                        # Convert to numpy array [sid, offset]
+                        m = np.array(m_list, dtype=object) 
+                        # Add the hash column back to match SQL output shape: [hash, sid, offset]
+                        h_col = np.full((m.shape[0], 1), hsh)
+                        hit_blocks.append(np.hstack((h_col, m)))
+                else:
+                    cache_misses.append(hsh)
 
-                cur.execute(query, current_batch)
-                
-                # Fetch all results from the cursor into a list of tuples
-                result = cur.fetchall()
-
-                if not result:
-                    continue
-
-                db_hashes = np.array([row[0] for row in result])
-                db_sids = np.array([row[1] for row in result], dtype=object) 
-                db_offsets = np.array([row[2] for row in result], dtype=np.int64) 
-
-                unique_hashes = np.unique(db_hashes)
-
-                batch_sids = []
-                batch_diffs = []
-                
-                for hsh in unique_hashes:
-                    match_indices = np.where(db_hashes == hsh)[0]
-                    db_offsets_for_hsh = db_offsets[match_indices]
-                    db_sids_for_hsh = db_sids[match_indices]
-                    sampled_offsets = mapper[hsh]
-
-                    # NumPy Broadcasting for higher performance
-                    diff_matrix = db_offsets_for_hsh[:, None] - sampled_offsets[None, :]
+            # 3. Handle Cache Misses with MySQL
+            sql_block = np.empty((0, 3), dtype=object)
+            if cache_misses:
+                with self.cursor() as cur:
+                    query = self.SELECT_MULTIPLE % ', '.join([self.IN_MATCH] * len(cache_misses))
+                    cur.execute(query, cache_misses)
+                    sql_results = cur.fetchall()
                     
-                    sid_matrix = np.repeat(db_sids_for_hsh, sampled_offsets.shape[0]).reshape(
-                        db_sids_for_hsh.shape[0], sampled_offsets.shape[0])
-                    
-                    # Batch processing
-                    batch_sids.append(sid_matrix.flatten())
-                    batch_diffs.append(diff_matrix.flatten())
+                    if sql_results:
+                        sql_block = np.array(sql_results, dtype=object)
+                        
+                        # POPULATE REDIS (Vectorized Grouping)
+                        # Sort by hash to use np.split
+                        sort_idx = np.argsort(sql_block[:, 0])
+                        sorted_arr = sql_block[sort_idx]
+                        unq_h, indices = np.unique(sorted_arr[:, 0], return_index=True)
+                        groups = np.split(sorted_arr, indices[1:])
+                        
+                        write_pipe = self.redis_client.pipeline()
+                        for h_key, group in zip(unq_h, groups):
+                            # Cache [sid, offset] only. Expiration: 24h
+                            write_pipe.setex(h_key.upper(), 86400, pickle.dumps(group[:, [1, 2]].tolist()))
+                        write_pipe.execute()
 
-                    # Dedup hashes
-                    for sid in db_sids_for_hsh:
-                        dedup_hashes[sid] = dedup_hashes.get(sid, 0) + 1
+            # 4. Merge Cache & DB results
+            all_blocks = [sql_block] + hit_blocks if hit_blocks else [sql_block]
+            combined = np.vstack(all_blocks) if any(b.size > 0 for b in all_blocks) else np.empty((0, 3))
+
+            if combined.size == 0:
+                continue
+
+            db_hashes = combined[:, 0]
+            db_sids = combined[:, 1]
+            db_offsets = combined[:, 2].astype(np.int64)
+
+            # 5. Vectorized Dedup Counting
+            u_sids, counts = np.unique(db_sids, return_counts=True)
+            for sid, count in zip(u_sids, counts):
+                dedup_hashes[sid] = dedup_hashes.get(sid, 0) + count
+
+            # 6. NumPy Broadcasting for differences
+            unique_hashes_in_batch = np.unique(db_hashes)
+            for hsh in unique_hashes_in_batch:
+                match_indices = np.where(db_hashes == hsh)[0]
+                db_offsets_for_hsh = db_offsets[match_indices]
+                db_sids_for_hsh = db_sids[match_indices]
+                sampled_offsets = mapper[hsh]
+
+                # Matrix subtraction: (N, 1) - (1, M) -> (N, M)
+                diff_matrix = db_offsets_for_hsh[:, None] - sampled_offsets[None, :]
+                # Repeat SIDs to match the flattened diff_matrix size
+                sid_matrix = np.repeat(db_sids_for_hsh, sampled_offsets.shape[0])
                 
-                # Concatenate batch results
-                if batch_sids:
-                    all_sids_flat.extend(np.concatenate(batch_sids))
-                    all_offsets_diff_flat.extend(np.concatenate(batch_diffs))
+                all_sids_flat.extend(sid_matrix)
+                all_offsets_diff_flat.extend(diff_matrix.flatten())
 
-            if all_sids_flat:
-                results = list(zip(all_sids_flat, all_offsets_diff_flat))
-            else:
-                results = []
-
+        results = list(zip(all_sids_flat, all_offsets_diff_flat)) if all_sids_flat else []
         return results, dedup_hashes
 
     def delete_songs_by_id(self, song_ids, batch_size: int = 1000) -> None:
@@ -395,7 +443,8 @@ class MySQLDatabase(Query):
     IN_MATCH = f"UNHEX(%s)"
 
     def __init__(self, **options):
-        super().__init__()
+        redis_db_index = options.pop("redis_db_index", 0)
+        super().__init__(redis_db_index=redis_db_index)
         self.cursor = cursor_factory(**options)
         self._options = options
 
