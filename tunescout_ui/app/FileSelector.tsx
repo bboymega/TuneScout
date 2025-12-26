@@ -754,7 +754,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
               ref={videoRef as React.RefObject<HTMLVideoElement>}
               src={URL.createObjectURL(selectedFile!)}
               controls
-              style={{ maxHeight: '480px', maxWidth: '100%' }}
+              style={{ height: 'auto', maxHeight: 'min(50vh, 480px)', objectFit: 'contain', maxWidth: '100%' }}
               onLoadedMetadata={handleLoadedMetadata}
             />
           )}
@@ -866,11 +866,27 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
         </button>
           
         {fileName ? (
-          <div style={{color: '#c8c8c8ff', fontFamily: '"OPTICopperplate-Light", sans-serif'}}>
+          <div style={{
+            color: '#c8c8c8ff',
+            fontFamily: '"OPTICopperplate-Light", sans-serif',
+            inlineSize: '100%',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-all',
+            hyphens: 'auto'
+          }}
+          >
             <strong>Selected file:</strong> {fileName}
           </div>
         ) : (
-          <div style={{color: '#c8c8c8ff', fontFamily: '"OPTICopperplate-Light", sans-serif'}}>
+          <div style={{
+            color: '#c8c8c8ff',
+            fontFamily: '"OPTICopperplate-Light", sans-serif',
+            inlineSize: '100%',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-all',
+            hyphens: 'auto'
+          }}
+          >
             <strong><br/></strong>
           </div>
         )}
