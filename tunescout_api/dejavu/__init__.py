@@ -116,6 +116,8 @@ class Dejavu:
         songs_result = []
         for song_id, offset, _ in songs_matches[0:topn]:  # consider topn elements in the result
             song = self.db.get_song_by_id(song_id)
+            if not song:
+                continue
 
             song_name = song.get(SONG_NAME, None)
             song_hashes = song.get(FIELD_TOTAL_HASHES, None)
