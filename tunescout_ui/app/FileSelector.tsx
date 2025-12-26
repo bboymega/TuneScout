@@ -754,7 +754,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
               ref={videoRef as React.RefObject<HTMLVideoElement>}
               src={URL.createObjectURL(selectedFile!)}
               controls
-              style={{ height: 'auto', maxHeight: 'min(50svh, 480px)', objectFit: 'contain', maxWidth: '100%' }}
+              style={{ height: 'auto', maxHeight: 'min(45svh, 480px)', objectFit: 'contain', maxWidth: '100%' }}
               onLoadedMetadata={handleLoadedMetadata}
             />
           )}
