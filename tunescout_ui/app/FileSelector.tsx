@@ -623,7 +623,7 @@ export default function FileSelector ({ disabled, uploadtoAPI, setDisabled, setE
           setClipEnd = {setClipEnd}
         />
       )}
-      <div className="video-trimmer-container mt-4">
+      <div className="video-trimmer-container mt-5">
         <button
           id="zoomBtn"
           className="mx-auto btn btn-primary mb-3"
