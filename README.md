@@ -139,6 +139,7 @@ Configuring the allowed sources that are allowed to access the API endpoints via
 Configuring the distributed set of audio fingerprinting database instances. Each instance defines a specific database configuration that the TuneScout system will connect to for storing and retrieving fingerprint audio data.
 
 - `database`:
+
 | Key               | Description                                                                                                                               | Default Value                           |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | `host`            | The database instance's IP address or hostname.                                                                                           | `127.0.0.1`                             |
