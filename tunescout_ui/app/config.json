@@ -2,7 +2,7 @@
     "maxDuration": 10,
     "apiBaseUrl": "http://172.16.241.129:8080/",
     "appName": "TuneScout",
-    "appLabel": "Find the tracks that sticks",
+    "appLabel": "Find the Tracks That Sticks",
     "title": "Find the tracks that sticks",
     "description": "TuneScout - Find the tracks that sticks",
     "keywords": ["TuneScout", "Music Recognition"],

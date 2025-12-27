@@ -115,7 +115,7 @@ export default function ResultsModule({ resultsJson, setProgress, setShowProgres
                   fontFamily: '"OPTICopperplate-Light", sans-serif',
                   color: '#fff',
                   backgroundColor: '#000000ff',
-                  minWidth: "clamp(0px, 90vw, 360px)"                  
+                  minWidth: "clamp(0px, 90svw, 360px)"                  
                 }}
               >
                 <small>#{index + 1} ⬤ Found at {Math.floor(offsetSec/60)}:{(offsetSec%60).toString().padStart(2,"0")}</small>
