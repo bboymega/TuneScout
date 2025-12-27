@@ -18,6 +18,7 @@ export default function ResultsModule({ resultsJson, setProgress, setShowProgres
   const [isError, setIsError] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   //Title of page: Results • {time}{title}
   const formatOffset = (sec: number) => {
@@ -57,7 +58,25 @@ export default function ResultsModule({ resultsJson, setProgress, setShowProgres
     }
   };
 
-  const platforms = [
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    // Check for common mobile identifiers
+    const mobileCheck = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    setIsMobile(mobileCheck);
+  }, []);
+
+  let platforms;
+
+  if (isMobile) platforms = [
+    { name: 'Google', url: (q: string) => `https://www.google.com/search?q=${q}` },
+    { name: 'Spotify', url: (q: string) => `https://open.spotify.com/search/results/${q}` },
+    { name: 'Apple Music', url: (q: string) => `https://music.apple.com/us/search?term=${q}` },
+    { name: 'YouTube', url: (q: string) => `https://m.youtube.com/results?search_query=${q}` },
+    { name: 'SoundCloud', url: (q: string) => `https://soundcloud.com/search?q=${q}` },
+    { name: 'YT Music', url: (q: string) => `https://music.youtube.com/search?q=${q}` },
+    { name: 'Bandcamp', url: (q: string) => `https://bandcamp.com/search?q=${q}` },
+  ];
+  else platforms = [
     { name: 'Google', url: (q: string) => `https://www.google.com/search?q=${q}` },
     { name: 'Spotify', url: (q: string) => `https://open.spotify.com/search/${q}` },
     { name: 'Apple Music', url: (q: string) => `https://music.apple.com/us/search?term=${q}` },
