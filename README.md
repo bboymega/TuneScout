@@ -43,6 +43,7 @@ Parameters:
 | `duration` (optional) | `integer` (seconds)   | The duration (in seconds) of the media to recognize starting from the `start` timestamp. If not provided, the entire media from `start` will be recognized. | `max_duration` (configured in `config.json`) |
 
 Example with Parameters for the Python `requests` Library:
+
 """
 files = {'file': (f.name, f, mime_type)}
 data = {'start': '0', 'duration': '10'} # optional
@@ -100,6 +101,7 @@ Parameters:
 | `audio_or_video_file` | `multipart/form-data`                      | The audio or video file (or stream) to be fingerprinted, submitted via the `file` parameter.                       |
 
 - Example with Parameters for the Python `requests` Library: 
+
 """
 header = { 'Authorization': f'Bearer 12345' }
 files = {'file': (f.name, f, mime_type)}
