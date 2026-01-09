@@ -89,17 +89,17 @@ The External Links section allows you to provide additional resources or links f
 
 ## Advanced Customization
 
-### app/favicon.ico
+#### app/favicon.ico
 Replace this image to customize the app’s browser tab icon.
 
-### public/img/background.png
+#### public/img/background.png
 Replace this image to customize the app’s background. Ensure it’s optimized for web use.
 
-### public/img/logo.png
+#### public/img/logo.png
 Replace this image to customize the app’s logo.
 
-### public/img/recording.gif
+#### public/img/recording.gif
 This is the animation shown during audio recording. Replace it with your own GIF.
 
-### public/img/loading.gif
+#### public/img/loading.gif
 Customize the loading animation by replacing this GIF with your own.
