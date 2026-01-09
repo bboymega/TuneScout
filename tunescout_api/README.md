@@ -117,7 +117,7 @@ This file serves as the master settings file for the TuneScout music recognition
 ### config.json
 This file serves as the configuration file for the distributed audio fingerprinting and result storage database instances, and the bearer token for authenticating fingerprinting requests.
 
-#### Key Sections:
+#### Key Sections
 `fingerprinting`:
 
 | Key     | Description                                                                  | Default Value |
