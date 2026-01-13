@@ -64,7 +64,7 @@ The External Links section allows you to provide additional resources or links f
 ```
 {
     "maxDuration": 10,
-    "apiBaseUrl": "http://172.17.0.2/",
+    "apiBaseUrl": "https://api.example.com/",
     "appName": "TuneScout",
     "appLabel": "Find the Tracks That Sticks",
     "title": "Find the tracks that sticks",

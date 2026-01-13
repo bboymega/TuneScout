@@ -222,7 +222,7 @@ Configuring the distributed set of result storage database instances. Each insta
     "fingerprinting": "10 per second",
     "redis_db_index": 0
   },
-  "allowed_origin": ["https://example.com", "*"],
+  "allowed_origin": ["https://example.com", "https://api.example.com", "*"],
   "instances": [
     {
       "database": {
